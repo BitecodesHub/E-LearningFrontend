@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react"; // For Icons
 
 export const Navbar = () => {
-  const { logout, isAuthenticated, userName,userFirstName } = useAuth();
+  const { logout, isAuthenticated, userFirstName } = useAuth();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
@@ -21,6 +23,10 @@ export const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -28,7 +34,6 @@ export const Navbar = () => {
         setIsDropdownOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -36,16 +41,18 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+    <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          <a href="/" className="hover:text-indigo-600 transition-all">Learn Without Limits</a>
+            <a href="/" className="hover:text-indigo-600 transition-all">
+              Learn Without Limits
+            </a>
           </h1>
 
-          {/* Navigation Links */}
-          <div className="hidden sm:flex space-x-8">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex space-x-8">
             <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
             <a href="#" className="hover:text-indigo-600 transition-all">Paths</a>
             <a href="#" className="hover:text-indigo-600 transition-all">Community</a>
@@ -54,8 +61,7 @@ export const Navbar = () => {
 
           {/* Authentication Section */}
           {isAuthenticated ? (
-            <div className="relative" ref={dropdownRef}>
-              {/* User Button */}
+            <div className="relative hidden md:block" ref={dropdownRef}>
               <button
                 onClick={toggleDropdown}
                 className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-all duration-200"
@@ -91,7 +97,42 @@ export const Navbar = () => {
           ) : (
             <button
               onClick={handleLoginSignup}
-              className="px-6 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+              className="hidden md:block px-6 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+            >
+              Login / Signup
+            </button>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button onClick={toggleMobileMenu} className="md:hidden p-2 focus:outline-none">
+            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div className={`md:hidden transition-all duration-300 ${isMobileMenuOpen ? "block" : "hidden"} bg-white border-t border-gray-200 shadow-md`}>
+        <div className="flex flex-col space-y-4 py-4 text-center">
+          <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
+          <a href="#" className="hover:text-indigo-600 transition-all">Paths</a>
+          <a href="#" className="hover:text-indigo-600 transition-all">Community</a>
+          <a href="#" className="hover:text-indigo-600 transition-all">Resources</a>
+
+          {isAuthenticated ? (
+            <>
+              <a href="/profile" className="block text-gray-700 hover:bg-gray-100 py-2">Profile</a>
+              <a href="/mycertifications" className="block text-gray-700 hover:bg-gray-100 py-2">My Certifications</a>
+              <button
+                onClick={handleLogout}
+                className="w-full px-4 py-2 text-red-600 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleLoginSignup}
+              className="px-6 py-2 mx-auto rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
             >
               Login / Signup
             </button>
