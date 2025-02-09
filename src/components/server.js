@@ -4,6 +4,9 @@ const path = require("path");
 const cors = require("cors");
 
 const app = express();
+const apiUrl = process.env.REACT_APP_ENV === 'production'
+? process.env.REACT_APP_LIVE_API
+: process.env.REACT_APP_LOCAL_API;
 
 // Enable CORS for React to make requests
 app.use(cors());

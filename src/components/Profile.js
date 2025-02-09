@@ -6,21 +6,22 @@ import axios from "axios";
 export const Profile = () => {
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
+  const apiUrl = process.env.REACT_APP_ENV === 'production'
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
 
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!userId) return;
+        if (!userId) return; // If there's no userId, stop execution
 
-        console.log("Fetching data for userId:", userId);
-        const response = await axios.get(`https://www.elearningbackend.bitecodes.com/api/auth/user/${userId}`);
+        // Fetch user data based on userId
+        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`);
         
         if (response.data) {
-          console.log("API Response:", response.data);
-
-          // Correctly map response data to state
+          // Map response data to state
           setUserData({
             username: response.data.username,
             userEmail: response.data.email,
@@ -36,7 +37,7 @@ export const Profile = () => {
     };
 
     fetchUserData();
-  }, [userId]);
+  }, [userId, apiUrl]); // Add apiUrl to dependencies to ensure it updates if needed
 
   const handleLogout = () => {
     sessionStorage.clear();

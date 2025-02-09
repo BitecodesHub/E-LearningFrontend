@@ -10,6 +10,10 @@ import { Courses } from "./components/Courses";
 import { Invoice } from "./components/test";
 import { Profile } from "./components/Profile";
 import { UpdateProfile } from "./components/UpdateProfile";
+import ModuleList from "./components/ModuleList";
+import ModuleDetail from "./components/ModuleDetail";
+import AddModule from "./components/AddModule";
+import AdminPanel from "./components/AdminPanel";
 
 
 function App() {
@@ -23,9 +27,15 @@ function App() {
           <Route path="/" element={< HomePage/>} />
           <Route path="/courses" element={< Courses/>} />
           <Route path="/invoice" element={< Invoice/>} />
+          <Route path="/course/:courseId/modules" element={<ModuleList />} />
+          <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} />
+          <Route path="/course/:courseId/add-module" element={<AddModule />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/addcourse" element={<AddCourse />}
+          />
 
           {/* Protect Routes */}
-          <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/>
+          {/* <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/> */}
           <Route path="/updateprofile" element={<ProtectedRoute> < UpdateProfile/> </ProtectedRoute>}/>
           <Route path="/profile" element={<ProtectedRoute> < Profile/> </ProtectedRoute>}/>
         </Routes>

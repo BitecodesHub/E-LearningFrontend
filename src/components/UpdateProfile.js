@@ -11,25 +11,28 @@ export const UpdateProfile = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const apiUrl = process.env.REACT_APP_ENV === 'production'
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         if (!userId) return;
-
-        console.log("Fetching user data for ID:", userId);
-        const response = await axios.get(`https://www.elearningbackend.bitecodes.com/api/auth/user/${userId}`);
+  
+        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`);
         
         if (response.data) {
-          console.log("API Response:", response.data);
           setUserData(response.data);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
-
+  
     fetchUserData();
-  }, [userId]);
+  }, [userId, apiUrl]); // Corrected dependency array: Both userId and apiUrl
+  
 
   // Handle profile image selection
   const handleImageChange = (event) => {
@@ -52,7 +55,7 @@ export const UpdateProfile = () => {
         const imageForm = new FormData();
         imageForm.append("thumbnailUrl", profileImage);
 
-        const uploadResponse = await axios.post("https://www.elearningbackend.bitecodes.com/upload/profilephoto", imageForm, {
+        const uploadResponse = await axios.post(`${apiUrl}/upload/profilephoto`, imageForm, {
           headers: { "Content-Type": "multipart/form-data" }
         });
 
@@ -70,7 +73,7 @@ export const UpdateProfile = () => {
       };
 
       // Send update request
-      const response = await axios.put(`https://www.elearningbackend.bitecodes.com/api/auth/update/${userId}`, updatedUser);
+      const response = await axios.put(`${apiUrl}/api/auth/update/${userId}`, updatedUser);
 
       if (response.status === 200) {
         setSuccess(true);

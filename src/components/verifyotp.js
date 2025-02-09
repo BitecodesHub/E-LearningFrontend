@@ -8,6 +8,10 @@ export const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
 
+  const apiUrl = process.env.REACT_APP_ENV === 'production'
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
+
   const handleOtpChange = (e) => {
     setOtp(e.target.value);
   };
@@ -16,7 +20,7 @@ export const VerifyOtp = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch("https://www.elearningbackend.bitecodes.com/api/auth/verify-otp", {
+      const response = await fetch(`${apiUrl}/api/auth/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

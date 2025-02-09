@@ -14,6 +14,10 @@ export const Register = () => {
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
   const [termsChecked, setTermsChecked] = useState(false); // State for terms checkbox
 
+  const apiUrl = process.env.REACT_APP_ENV === 'production'
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -53,7 +57,7 @@ export const Register = () => {
     if (!validateForm()) return; // If validation fails, do not proceed
 
     try {
-      const response = await fetch("https://www.elearningbackend.bitecodes.com/api/auth/register", {
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,16 +133,6 @@ export const Register = () => {
                 I agree to the Terms and Conditions
               </label>
             </div>
-
-            {/* <div className="flex justify-between items-center">
-              <button
-                type="button"
-                onClick={handlePasswordVisibility}
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                {showPassword ? "Hide" : "Show"} Password
-              </button>
-            </div> */}
 
             <button
               type="submit"
