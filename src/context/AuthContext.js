@@ -16,10 +16,13 @@ export const AuthProvider = ({ children }) => {
   const [userId, setUserId] = useState(sessionStorage.getItem("userId"));
   const [userFirstName, setUserFirstName] = useState(sessionStorage.getItem("userFirstName"));
   const [userProfileUrl, setUserProfileUrl] = useState(sessionStorage.getItem("userProfileUrl"));
+  const apiUrl = process.env.REACT_APP_ENV === 'production'
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
 
   const login = async (email, password) => {
     try {
-      const response = await fetch("https://www.elearningbackend.bitecodes.com/api/auth/login", {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
