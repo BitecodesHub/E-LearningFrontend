@@ -115,9 +115,10 @@ export const Navbar = () => {
       <div className={`md:hidden transition-all duration-300 ${isMobileMenuOpen ? "block" : "hidden"} bg-white border-t border-gray-200 shadow-md`}>
         <div className="flex flex-col space-y-4 py-4 text-center">
           <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
-          <a href="#" className="hover:text-indigo-600 transition-all">Paths</a>
-          <a href="#" className="hover:text-indigo-600 transition-all">Community</a>
-          <a href="#" className="hover:text-indigo-600 transition-all">Resources</a>
+          <a href="/leaderboard" className="hover:text-indigo-600 transition-all">LeaderBoard</a>
+            <a href="/credential-verify" className="hover:text-indigo-600 transition-all">Credential</a>
+            <a href="/about" className="hover:text-indigo-600 transition-all">About</a>
+            <a href="/contact" className="hover:text-indigo-600 transition-all">Contact</a>
 
           {isAuthenticated ? (
             <>
