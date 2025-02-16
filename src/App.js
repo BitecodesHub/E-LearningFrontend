@@ -14,6 +14,11 @@ import ModuleList from "./components/ModuleList";
 import ModuleDetail from "./components/ModuleDetail";
 import AddModule from "./components/AddModule";
 import AdminPanel from "./components/AdminPanel";
+import { AdminCoursePanel } from "./components/AdminCoursesPanel";
+import { Contact } from "./components/Contact";
+import { About } from "./components/About";
+import { LeaderBoard } from "./components/LeaderBoard";
+import { CredentialVerify } from "./components/CredentialVerify";
 
 
 function App() {
@@ -27,11 +32,16 @@ function App() {
           <Route path="/" element={< HomePage/>} />
           <Route path="/courses" element={< Courses/>} />
           <Route path="/invoice" element={< Invoice/>} />
-          <Route path="/course/:courseId/modules" element={<ModuleList />} />
+          <Route path="/course/modules" element={<ModuleList />} />
           <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} />
-          <Route path="/course/:courseId/add-module" element={<AddModule />} />
+          <Route path="/course/add-module" element={<AddModule />} />
           <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/addcourse" element={<AddCourse />}
+          <Route path="/addcourse" element={<AddCourse />}/>
+          <Route path="/contact" element={<Contact />}/>
+          <Route path="/about" element={<About />}/>
+          <Route path="/leaderboard" element={<LeaderBoard/>}/>
+          <Route path="/credential-verify" element={<CredentialVerify/>}/>
+          <Route path="/admincourses" element={<AdminCoursePanel />}
           />
 
           {/* Protect Routes */}

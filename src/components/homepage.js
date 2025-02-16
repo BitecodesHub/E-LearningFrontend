@@ -1,31 +1,11 @@
 import { DiJava, DiReact } from "react-icons/di"; // Java & React icons
 import { SiPython, SiMysql, SiMongodb, SiRust, SiCplusplus } from "react-icons/si"; // Python, MySQL, MongoDB, Rust, C++;
-import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 
  // Python icon
 
 export const HomePage = () => {
-  const { logout, isAuthenticated, userEmail, userName } = useAuth();
-  const navigate = useNavigate();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const handleLoginSignup = () => {
-    navigate("/login");
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
   const courses = [
     { title: "Python", desc: "Learn Python from basics to advanced concepts.", icon:<SiPython size={50} color="#306998" /> },
     { title: "Java", desc: "Master Java with comprehensive courses.", icon: <DiJava size={50} color="#007396" /> },
@@ -41,7 +21,7 @@ export const HomePage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <section className="text-center mb-20">
           <h2 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight py-5">
             Master Programming Today
@@ -54,7 +34,7 @@ export const HomePage = () => {
               <a href="/courses">Explore Courses</a>
             </button>
             <button className="px-8 py-3 rounded-full border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition-all duration-200 transform hover:scale-105">
-              View Learning Paths
+            <a href="/leaderboard">LeaderBoard</a>
             </button>
           </div>
         </section>

@@ -15,15 +15,15 @@ const Sidebar = () => {
         <ul className="space-y-4 p-4">
           <li>
             <Link
-              to="/addcourse"
+              to="/admincourses"
               className="block text-lg hover:bg-blue-700 p-3 rounded-md"
             >
-              Add Course
+              Courses
             </Link>
           </li>
           <li>
             <Link
-              to={`/course/1/modules`}
+              to={`/course/modules`}
               className="block text-lg hover:bg-blue-700 p-3 rounded-md"
             >
               Modules List
@@ -31,7 +31,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              to={`/course/1/add-module`}
+              to={`/course/add-module`}
               className="block text-lg hover:bg-blue-700 p-3 rounded-md"
             >
               Add Module

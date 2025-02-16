@@ -6,6 +6,7 @@ import AddModule from './AddModule';
 import {AddCourse} from './AddCourse';
 import ModuleDetail from './ModuleDetail';
 import Sidebar from './AdminSlidebar';
+import { AdminCoursePanel } from './AdminCoursesPanel';
 
 const AdminPanel = () => {
   return (
@@ -22,6 +23,7 @@ const AdminPanel = () => {
             <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} />
             <Route path="/course/:courseId/add-module" element={<AddModule />} />
             <Route path="/addcourse" element={<AddCourse />} />
+            <Route path="/admincourses" element={<AdminCoursePanel />} />
           </Routes>
         </div>
       </div>

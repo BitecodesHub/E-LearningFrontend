@@ -21,7 +21,7 @@ export const Courses = () => {
 
 {/* Courses Section */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="text-center mb-12">
           <h2 className="text-4xl sm:text-6xl  font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight py-5">Available Courses</h2>
           <p className="text-lg sm:text-xl mb-8 max-w-2xl mx-auto text-gray-600">

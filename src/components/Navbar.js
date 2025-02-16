@@ -42,7 +42,7 @@ export const Navbar = () => {
 
   return (
     <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -54,9 +54,10 @@ export const Navbar = () => {
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex space-x-8">
             <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
-            <a href="#" className="hover:text-indigo-600 transition-all">Paths</a>
-            <a href="#" className="hover:text-indigo-600 transition-all">Community</a>
-            <a href="#" className="hover:text-indigo-600 transition-all">Resources</a>
+            <a href="/leaderboard" className="hover:text-indigo-600 transition-all">LeaderBoard</a>
+            <a href="/credential-verify" className="hover:text-indigo-600 transition-all">Credential</a>
+            <a href="/about" className="hover:text-indigo-600 transition-all">About</a>
+            <a href="/contact" className="hover:text-indigo-600 transition-all">Contact</a>
           </div>
 
           {/* Authentication Section */}
