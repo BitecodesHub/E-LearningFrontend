@@ -11,7 +11,7 @@ export const LeaderBoard = () => {
       {/* Main content takes all available space between Navbar and Footer */}
       <main className="flex-grow flex flex-col items-center justify-center">
         <div className="w-full bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="min-h-full flex flex-col items-center justify-center p-24">
+          <div className="min-h-full flex flex-col items-center justify-center p-32">
             <div className="relative w-48 h-48 mb-12">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" />
               <div className="absolute inset-2 bg-white rounded-full" />
