@@ -19,6 +19,8 @@ import { Contact } from "./components/Contact";
 import { About } from "./components/About";
 import { LeaderBoard } from "./components/LeaderBoard";
 import { CredentialVerify } from "./components/CredentialVerify";
+import { CourseModule } from "./components/CourseModule";
+import CourseModuleDetail from "./components/CourseModuleDetail";
 
 
 function App() {
@@ -33,12 +35,15 @@ function App() {
           <Route path="/courses" element={< Courses/>} />
           <Route path="/invoice" element={< Invoice/>} />
           <Route path="/course/modules" element={<ModuleList />} />
-          <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} />
+          {/* <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} /> */}
           <Route path="/course/add-module" element={<AddModule />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/addcourse" element={<AddCourse />}/>
           <Route path="/contact" element={<Contact />}/>
           <Route path="/about" element={<About />}/>
+          <Route path="/course/:courseId/module/:moduleNumber" element={<CourseModuleDetail />} />
+          <Route path="/course/:courseId/modules" element={<CourseModule />} />
+
           <Route path="/leaderboard" element={<LeaderBoard/>}/>
           <Route path="/credential-verify" element={<CredentialVerify/>}/>
           <Route path="/admincourses" element={<AdminCoursePanel />}
