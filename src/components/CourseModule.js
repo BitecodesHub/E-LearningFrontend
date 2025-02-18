@@ -6,22 +6,28 @@ import { Footer } from "./Footer";
 export const CourseModule = () => {
   const { courseId } = useParams(); // Get course ID from URL params
   const [modules, setModules] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const apiUrl = process.env.REACT_APP_ENV === "production"
-  ? process.env.REACT_APP_LIVE_API
-  : process.env.REACT_APP_LOCAL_API;
-
+    ? process.env.REACT_APP_LIVE_API
+    : process.env.REACT_APP_LOCAL_API;
 
   useEffect(() => {
     fetch(`${apiUrl}/module/course/${courseId}`)
       .then((response) => response.json())
-      .then((data) => setModules(data))
-      .catch((error) => console.error("Error fetching modules:", error));
+      .then((data) => {
+        setModules(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching modules:", error);
+        setLoading(false);
+      });
   }, [courseId]);
 
   const handleModuleClick = (moduleId) => {
-    navigate(`/course/${courseId}/module/${moduleId}`); // Dynamic course ID
+    navigate(`/course/${courseId}/module/${moduleId}`);
   };
 
   return (
@@ -38,7 +44,11 @@ export const CourseModule = () => {
           </p>
         </header>
 
-        {modules.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin"></div>
+          </div>
+        ) : modules.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {modules.map((module, index) => (
               <div
@@ -56,7 +66,7 @@ export const CourseModule = () => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500">Loading modules...</p>
+          <p className="text-center text-gray-500">No modules available.</p>
         )}
       </div>
 
