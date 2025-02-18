@@ -8,6 +8,7 @@ import { DiJava, DiReact } from "react-icons/di";
 
 export const HomePage = () => {
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const apiUrl =
@@ -25,17 +26,19 @@ export const HomePage = () => {
       setCourses(response.data);
     } catch (error) {
       console.error("Error fetching courses:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const courseIcons = {
-    Python: <SiPython size={50} color="#306998" />, 
-    Java: <DiJava size={50} color="#007396" />, 
-    "C++": <SiCplusplus size={50} color="#00599C" />, 
-    MySQL: <SiMysql size={50} color="#4479A1" />, 
-    MongoDB: <SiMongodb size={50} color="#47A248" />, 
-    Rust: <SiRust size={50} color="#DEA584" />, 
-    React: <DiReact size={50} color="#61DAFB" />
+    Python: <SiPython size={50} color="#306998" />,
+    Java: <DiJava size={50} color="#007396" />,
+    "C++": <SiCplusplus size={50} color="#00599C" />,
+    MySQL: <SiMysql size={50} color="#4479A1" />,
+    MongoDB: <SiMongodb size={50} color="#47A248" />,
+    Rust: <SiRust size={50} color="#DEA584" />,
+    React: <DiReact size={50} color="#61DAFB" />,
   };
 
   return (
@@ -57,7 +60,19 @@ export const HomePage = () => {
         </section>
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {courses.length > 0 ? (
+          {loading ? (
+            // Skeleton Loader
+            [...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-2xl shadow-lg animate-pulse flex flex-col items-center"
+              >
+                <div className="w-14 h-14 bg-gray-300 rounded-full mb-4"></div>
+                <div className="w-2/3 h-6 bg-gray-300 rounded mb-2"></div>
+                <div className="w-1/2 h-4 bg-gray-300 rounded"></div>
+              </div>
+            ))
+          ) : courses.length > 0 ? (
             courses.map((course, index) => (
               <div
                 key={index}
