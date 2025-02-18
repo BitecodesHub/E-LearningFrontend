@@ -8,8 +8,13 @@ export const CourseModule = () => {
   const [modules, setModules] = useState([]);
   const navigate = useNavigate();
 
+  const apiUrl = process.env.REACT_APP_ENV === "production"
+  ? process.env.REACT_APP_LIVE_API
+  : process.env.REACT_APP_LOCAL_API;
+
+
   useEffect(() => {
-    fetch(`http://localhost:8080/module/course/${courseId}`)
+    fetch(`${apiUrl}/module/course/${courseId}`)
       .then((response) => response.json())
       .then((data) => setModules(data))
       .catch((error) => console.error("Error fetching modules:", error));
