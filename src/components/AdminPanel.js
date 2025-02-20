@@ -1,6 +1,5 @@
 // AdminPanel.js
 import { Route, Routes } from 'react-router-dom';// Import Sidebar component
-import { Navbar} from './Navbar'; // Assuming these are already available
 import ModuleList from './ModuleList';  // Import ModuleList and other components
 import AddModule from './AddModule';
 import {AddCourse} from './AddCourse';
@@ -16,7 +15,6 @@ const AdminPanel = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        <Navbar />
         <div className="flex-1 overflow-y-auto p-8">
           <Routes>
             <Route path="/course/:courseId/modules" element={<ModuleList />} />

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Navbar } from "./Navbar";
 import Sidebar from "./AdminSlidebar";
 import { AddCourse } from "./AddCourse";
 import { X, Trash2 } from "lucide-react";
@@ -45,7 +44,6 @@ export const AdminCoursePanel = () => {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Navbar />
         <div className="p-6">
           <h1 className="text-4xl font-extrabold text-center text-blue-600 mb-8">
             Admin Course Panel

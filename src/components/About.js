@@ -1,13 +1,10 @@
 import React from "react";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import Avatar from 'react-avatar';
 
 export const About = () => {
   return (
     <div id="webcrumbs">
-      <Navbar />
       <div className="max-w-full mx-auto bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl shadow-2xl overflow-hidden p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-8">
           <details className="group bg-white rounded-2xl p-10 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 ease-out border border-slate-100">
@@ -89,7 +86,6 @@ export const About = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

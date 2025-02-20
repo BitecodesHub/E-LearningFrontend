@@ -8,9 +8,10 @@ export const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
 
-  const apiUrl = process.env.REACT_APP_ENV === 'production'
-  ? process.env.REACT_APP_LIVE_API
-  : process.env.REACT_APP_LOCAL_API;
+  const apiUrl =
+    process.env.REACT_APP_ENV === "production"
+      ? process.env.REACT_APP_LIVE_API
+      : process.env.REACT_APP_LOCAL_API;
 
   const handleOtpChange = (e) => {
     setOtp(e.target.value);
@@ -18,7 +19,7 @@ export const VerifyOtp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const response = await fetch(`${apiUrl}/api/auth/verify-otp`, {
         method: "POST",
@@ -51,7 +52,9 @@ export const VerifyOtp = () => {
         <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
           <div className="mb-6 sm:mb-8 text-center">
             <h1 className="text-2xl sm:text-3xl font-bold">Verify OTP</h1>
-            <p className="mt-2 text-xs sm:text-sm">Please enter the verification code sent to your email</p>
+            <p className="mt-2 text-xs sm:text-sm">
+              Please enter the verification code sent to your email
+            </p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -66,7 +69,7 @@ export const VerifyOtp = () => {
                   className="w-full rounded-lg border border-gray-200 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-center tracking-widest transition-all duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
               </div>
-              
+
               <button
                 type="submit"
                 className="w-full rounded-lg bg-blue-600 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -84,13 +87,19 @@ export const VerifyOtp = () => {
 
           <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
             Didn't receive the code?{" "}
-            <a href="#" className="ml-1 font-medium text-blue-600 hover:text-blue-700">
+            <a
+              href="/"
+              className="ml-1 font-medium text-blue-600 hover:text-blue-700"
+            >
               Resend OTP
             </a>
           </div>
 
           <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-700">
+            <a
+              href="/"
+              className="font-medium text-blue-600 hover:text-blue-700"
+            >
               Go back
             </a>
           </div>

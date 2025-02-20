@@ -11,7 +11,7 @@ export const Register = () => {
     role: "USER",
   });
   const [message, setMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword] = useState(false); // State for password visibility
   const [termsChecked, setTermsChecked] = useState(false); // State for terms checkbox
 
   const apiUrl = process.env.REACT_APP_ENV === 'production'
@@ -26,9 +26,9 @@ export const Register = () => {
     });
   };
 
-  const handlePasswordVisibility = () => {
-    setShowPassword(!showPassword); // Toggle password visibility
-  };
+  // const handlePasswordVisibility = () => {
+  //   setShowPassword(!showPassword); // Toggle password visibility
+  // };
 
   const handleTermsChange = (e) => {
     setTermsChecked(e.target.checked); // Set the checkbox state

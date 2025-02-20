@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Navbar } from "./Navbar";
 import { ArrowLeft } from "lucide-react"; // Import back arrow icon
+import { Footer } from "./Footer";
 
 const CourseModuleDetail = () => {
   const { courseId, moduleNumber } = useParams();
@@ -35,17 +35,16 @@ const CourseModuleDetail = () => {
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
       <div className="flex-1 flex flex-col">
-        <Navbar />
         <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-white to-gray-50">
-          <div className="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transform transition-all duration-500 ease-in-out">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-blue-600 hover:text-blue-800 ms-3"
+        >
+          <ArrowLeft className="w-6 h-6 mr-2" /> Back to Modules
+        </button>
+          <div className="max-w-4xl mb-3 mx-auto bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transform transition-all duration-500 ease-in-out">
             
-            {/* Back Button */}
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transform hover:scale-105 transition-all duration-300 ease-in-out"
-            >
-              <ArrowLeft className="w-6 h-6 mr-2" /> Back to Modules
-            </button>
 
             {/* Loading Spinner */}
             {loading ? (
@@ -66,7 +65,7 @@ const CourseModuleDetail = () => {
                         <img
                           src={url}
                           alt={`Module Image ${index + 1}`}
-                          className="w-full max-w-4xl rounded-xl shadow-lg hover:scale-105 transition-all duration-300 ease-in-out"
+                          className="w-full max-w-4xl rounded-xl shadow-lg transition-all duration-300 ease-in-out"
                         />
                         {module.content[index] && (
                           <p className="text-lg mt-4 text-gray-700 text-left w-full">

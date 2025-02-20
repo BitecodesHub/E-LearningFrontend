@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 
 export const TakeExam = () => {
   const { courseId } = useParams();
@@ -66,8 +64,7 @@ export const TakeExam = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex flex-col">
-      <Navbar />
-      <div className="flex-grow w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-10 mt-10">
+      <div className="flex-grow w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-10 my-10">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">Exam</h1>
 
         {/* Timer */}
@@ -140,7 +137,6 @@ export const TakeExam = () => {
           <p className="text-center text-gray-600 mt-6">Loading questions...</p>
         )}
       </div>
-      <Footer />
     </div>
   );
 };

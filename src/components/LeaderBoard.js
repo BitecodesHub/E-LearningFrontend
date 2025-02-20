@@ -1,13 +1,8 @@
 import React from "react";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 
 export const LeaderBoard = () => {
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-purple-50">
-      {/* Navbar at the top */}
-      <Navbar />
-
       {/* Main content takes all available space between Navbar and Footer */}
       <main className="flex-grow flex flex-col items-center justify-center">
         <div className="w-full bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden">
@@ -30,9 +25,6 @@ export const LeaderBoard = () => {
           </div>
         </div>
       </main>
-
-      {/* Footer at the bottom */}
-      <Footer />
     </div>
   );
 };

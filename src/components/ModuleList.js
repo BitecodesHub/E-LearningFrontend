@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Navbar } from "./Navbar";
 import Sidebar from "./AdminSlidebar";
 import { motion } from "framer-motion";
 
@@ -55,7 +54,6 @@ const ModuleList = () => {
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Navbar />
         <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
           <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Course Modules</h2>

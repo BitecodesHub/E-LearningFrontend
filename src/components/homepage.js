@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 import { SiPython, SiMysql, SiMongodb, SiRust, SiCplusplus } from "react-icons/si";
 import { DiJava, DiReact } from "react-icons/di";
 
@@ -18,7 +16,7 @@ export const HomePage = () => {
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  });
 
   const fetchCourses = async () => {
     try {
@@ -43,7 +41,6 @@ export const HomePage = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-      <Navbar />
       <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <section className="text-center mb-20">
           <h2 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight py-5">
@@ -91,7 +88,6 @@ export const HomePage = () => {
           )}
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

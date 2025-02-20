@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Navbar } from "./Navbar";
 
 export const UpdateProfile = () => {
   const navigate = useNavigate();
@@ -99,8 +98,6 @@ export const UpdateProfile = () => {
   return (
     <div id="webcrumbs">
       <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-        <Navbar />
-
         <main className="p-8">
           <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
             <form onSubmit={handleSubmit} className="p-6 space-y-6">

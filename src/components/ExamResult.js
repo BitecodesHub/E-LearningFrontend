@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 
 export const ExamResult = () => {
   const { attemptId } = useParams(); // Get attemptId from URL
@@ -28,8 +26,7 @@ export const ExamResult = () => {
 
   const { score, passed } = result;
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex flex-col">
-      <Navbar />
+    <div className="w-full min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex justify-between">
       <div className="flex-grow w-full bg-white rounded-xl shadow-xl p-10 text-center">
         {passed ? (
           <h1 className="text-4xl font-bold text-green-600">🎉 Congratulations! You Passed! 🎉</h1>
@@ -44,7 +41,6 @@ export const ExamResult = () => {
           Back to Home
         </button>
       </div>
-      <Footer />
     </div>
   );
 };

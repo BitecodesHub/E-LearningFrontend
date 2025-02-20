@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 
 export const UserAttempts = () => {
   const [attempts, setAttempts] = useState([]);
@@ -40,7 +38,7 @@ export const UserAttempts = () => {
             console.error("Error fetching courses:", err);
             setCourses([]); // ✅ Prevent crash if fetch fails
           });
-      }, [userId]);
+      }, [userId, apiUrl]);
     
     
 
@@ -71,8 +69,6 @@ export const UserAttempts = () => {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-100">
-      <Navbar />
-
       <div className="flex-grow max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-10 w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">My Exam Attempts</h1>
 
@@ -139,8 +135,6 @@ export const UserAttempts = () => {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 };

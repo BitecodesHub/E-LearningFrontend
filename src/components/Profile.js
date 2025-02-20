@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "./Navbar";
 import axios from "axios";
 
 export const Profile = () => {
@@ -58,8 +57,6 @@ export const Profile = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-      <Navbar />
-      
       <div className="flex justify-center items-center min-h-screen">
         <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden p-6">
           <div className="space-y-6">

@@ -24,12 +24,15 @@ import CourseModuleDetail from "./components/CourseModuleDetail";
 import { TakeExam } from "./components/TakeExam";
 import { ExamResult } from "./components/ExamResult";
 import { UserAttempts } from "./components/UserAttempts";
+import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 
 
 function App() {
   return (
     <Router>
       <div className="App">
+          <Navbar/>
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
@@ -59,8 +62,9 @@ function App() {
           {/* Protect Routes */}
           {/* <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/> */}
           <Route path="/updateprofile" element={<ProtectedRoute> < UpdateProfile/> </ProtectedRoute>}/>
-          <Route path="/profile" element={<ProtectedRoute> < Profile/> </ProtectedRoute>}/>
+          <Route path="/profile" element={<ProtectedRoute> < Profile /> </ProtectedRoute>} />
         </Routes>
+          <Footer/>
       </div>
     </Router>
   );

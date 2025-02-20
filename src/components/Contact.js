@@ -6,8 +6,6 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 
 export const Contact = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -34,7 +32,6 @@ export const Contact = () => {
 
   return (
     <div id="webcrumbs">
-        <Navbar/>
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
         {/* Success Animation */}
         {isSubmitted && (
@@ -221,7 +218,6 @@ export const Contact = () => {
           </section>
         </main>
       </div>
-      <Footer/>
     </div>
   );
 };
