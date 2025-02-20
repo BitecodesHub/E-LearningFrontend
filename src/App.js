@@ -21,6 +21,9 @@ import { LeaderBoard } from "./components/LeaderBoard";
 import { CredentialVerify } from "./components/CredentialVerify";
 import { CourseModule } from "./components/CourseModule";
 import CourseModuleDetail from "./components/CourseModuleDetail";
+import { TakeExam } from "./components/TakeExam";
+import { ExamResult } from "./components/ExamResult";
+import { UserAttempts } from "./components/UserAttempts";
 
 
 function App() {
@@ -43,6 +46,10 @@ function App() {
           <Route path="/about" element={<About />}/>
           <Route path="/course/:courseId/module/:moduleNumber" element={<CourseModuleDetail />} />
           <Route path="/course/:courseId/modules" element={<CourseModule />} />
+          <Route path="/course/:courseId/exam" element={<TakeExam />} />
+          <Route path="/result/:attemptId" element={<ExamResult />} />
+          <Route path="/attempts" element={<UserAttempts />} />
+
 
           <Route path="/leaderboard" element={<LeaderBoard/>}/>
           <Route path="/credential-verify" element={<CredentialVerify/>}/>

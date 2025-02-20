@@ -30,6 +30,10 @@ export const CourseModule = () => {
     navigate(`/course/${courseId}/module/${moduleId}`);
   };
 
+  const handleTakeExam = () => {
+    navigate(`/course/${courseId}/exam`);
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex flex-col">
       <Navbar />
@@ -68,6 +72,15 @@ export const CourseModule = () => {
         ) : (
           <p className="text-center text-gray-500">No modules available.</p>
         )}
+
+        <div className="mt-10 flex justify-center">
+          <button 
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
+            onClick={handleTakeExam}
+          >
+            Take Exam
+          </button>
+        </div>
       </div>
 
       <Footer />
