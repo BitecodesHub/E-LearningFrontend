@@ -53,11 +53,27 @@ export const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex space-x-8">
-            <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
-            <a href="/leaderboard" className="hover:text-indigo-600 transition-all">LeaderBoard</a>
-            <a href="/credential-verify" className="hover:text-indigo-600 transition-all">Credential</a>
-            <a href="/about" className="hover:text-indigo-600 transition-all">About</a>
-            <a href="/contact" className="hover:text-indigo-600 transition-all">Contact</a>
+            <a href="/courses" className="hover:text-indigo-600 transition-all">
+              Courses
+            </a>
+            <a
+              href="/leaderboard"
+              className="hover:text-indigo-600 transition-all"
+            >
+              LeaderBoard
+            </a>
+            <a
+              href="/credential-verify"
+              className="hover:text-indigo-600 transition-all"
+            >
+              Credential
+            </a>
+            <a href="/about" className="hover:text-indigo-600 transition-all">
+              About
+            </a>
+            <a href="/contact" className="hover:text-indigo-600 transition-all">
+              Contact
+            </a>
           </div>
 
           {/* Authentication Section */}
@@ -67,8 +83,14 @@ export const Navbar = () => {
                 onClick={toggleDropdown}
                 className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-all duration-200"
               >
-                <span className="text-lg font-semibold">{userFirstName || "User"}</span>
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <span className="text-lg font-semibold">
+                  {userFirstName || "User"}
+                </span>
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -80,11 +102,23 @@ export const Navbar = () => {
               {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-                  <a href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center">
+                  <a
+                    href="/profile"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
+                  >
                     Profile
                   </a>
-                  <a href="/mycertifications" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center">
+                  <a
+                    href="/certificates"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
+                  >
                     My Certifications
+                  </a>
+                  <a
+                    href="/attempts"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
+                  >
+                  Attempts
                   </a>
                   <button
                     onClick={handleLogout}
@@ -105,25 +139,58 @@ export const Navbar = () => {
           )}
 
           {/* Mobile Menu Button */}
-          <button onClick={toggleMobileMenu} className="md:hidden p-2 focus:outline-none">
+          <button
+            onClick={toggleMobileMenu}
+            className="md:hidden p-2 focus:outline-none"
+          >
             {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden transition-all duration-300 ${isMobileMenuOpen ? "block" : "hidden"} bg-white border-t border-gray-200 shadow-md`}>
+      <div
+        className={`md:hidden transition-all duration-300 ${
+          isMobileMenuOpen ? "block" : "hidden"
+        } bg-white border-t border-gray-200 shadow-md`}
+      >
         <div className="flex flex-col space-y-4 py-4 text-center">
-          <a href="/courses" className="hover:text-indigo-600 transition-all">Courses</a>
-          <a href="/leaderboard" className="hover:text-indigo-600 transition-all">LeaderBoard</a>
-            <a href="/credential-verify" className="hover:text-indigo-600 transition-all">Credential</a>
-            <a href="/about" className="hover:text-indigo-600 transition-all">About</a>
-            <a href="/contact" className="hover:text-indigo-600 transition-all">Contact</a>
+          <a href="/courses" className="hover:text-indigo-600 transition-all">
+            Courses
+          </a>
+          <a
+            href="/leaderboard"
+            className="hover:text-indigo-600 transition-all"
+          >
+            LeaderBoard
+          </a>
+          <a
+            href="/credential-verify"
+            className="hover:text-indigo-600 transition-all"
+          >
+            Credential
+          </a>
+          <a href="/about" className="hover:text-indigo-600 transition-all">
+            About
+          </a>
+          <a href="/contact" className="hover:text-indigo-600 transition-all">
+            Contact
+          </a>
 
           {isAuthenticated ? (
             <>
-              <a href="/profile" className="block text-gray-700 hover:bg-gray-100 py-2">Profile</a>
-              <a href="/mycertifications" className="block text-gray-700 hover:bg-gray-100 py-2">My Certifications</a>
+              <a
+                href="/profile"
+                className="block text-gray-700 hover:bg-gray-100 py-2"
+              >
+                Profile
+              </a>
+              <a
+                href="/mycertifications"
+                className="block text-gray-700 hover:bg-gray-100 py-2"
+              >
+                My Certifications
+              </a>
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-red-600 hover:bg-gray-100"

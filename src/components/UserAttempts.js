@@ -13,34 +13,32 @@ export const UserAttempts = () => {
       ? process.env.REACT_APP_LIVE_API
       : process.env.REACT_APP_LOCAL_API;
 
-      useEffect(() => {
-        // Fetch attempts
-        fetch(`${apiUrl}/api/attempts/user/${userId}`)
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Fetched Attempts:", data);
-            setAttempts(data);
-          })
-          .catch((err) => console.error("Error fetching attempts:", err));
-    
-        // Fetch courses
-        fetch(`${apiUrl}/course/getCourses`)
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Fetched Courses:", data);
-            if (Array.isArray(data)) {
-              setCourses(data); // ✅ Ensure courses is set as an array
-            } else {
-              setCourses([]); // ✅ Default to empty array if response is not an array
-            }
-          })
-          .catch((err) => {
-            console.error("Error fetching courses:", err);
-            setCourses([]); // ✅ Prevent crash if fetch fails
-          });
-      }, [userId, apiUrl]);
-    
-    
+  useEffect(() => {
+    // Fetch attempts
+    fetch(`${apiUrl}/api/attempts/user/${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Fetched Attempts:", data);
+        setAttempts(data);
+      })
+      .catch((err) => console.error("Error fetching attempts:", err));
+
+    // Fetch courses
+    fetch(`${apiUrl}/course/getCourses`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Fetched Courses:", data);
+        if (Array.isArray(data)) {
+          setCourses(data);
+        } else {
+          setCourses([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching courses:", err);
+        setCourses([]);
+      });
+  }, [userId, apiUrl]);
 
   // Function to format date properly
   const formatDate = (dateString) => {
@@ -61,20 +59,32 @@ export const UserAttempts = () => {
     return course ? course.name : "Unknown Course";
   };
 
+  // Handle payment action
+  const handlePayment = (attemptId) => {
+    alert(`Redirecting to payment for attempt ID: ${attemptId}`);
+    // Here, you can redirect the user to a payment page or call a payment API
+  };
+
   // Filter attempts based on selected course
   const filteredAttempts =
     selectedCourse === "all"
       ? attempts
-      : attempts.filter((attempt) => attempt.courseId === parseInt(selectedCourse));
+      : attempts.filter(
+          (attempt) => attempt.courseId === parseInt(selectedCourse)
+        );
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-100">
-      <div className="flex-grow max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-10 w-full">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">My Exam Attempts</h1>
+      <div className="flex-grow max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 my-5 w-full">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          My Exam Attempts
+        </h1>
 
         {/* Dropdown for Course Selection */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Select Course:</label>
+          <label className="block text-gray-700 font-bold mb-2">
+            Select Course:
+          </label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
@@ -106,11 +116,18 @@ export const UserAttempts = () => {
               </thead>
               <tbody>
                 {filteredAttempts.map((attempt) => (
-                  <tr key={attempt.id} className="text-left border hover:bg-gray-100">
+                  <tr
+                    key={attempt.id}
+                    className="text-left border hover:bg-gray-100"
+                  >
                     <td className="border p-3">{attempt.id}</td>
-                    <td className="border p-3">{getCourseName(attempt.courseId)}</td>
+                    <td className="border p-3">
+                      {getCourseName(attempt.courseId)}
+                    </td>
                     <td className="border p-3">{attempt.score}%</td>
-                    <td className="border p-3">{formatDate(attempt.attemptedAt)}</td>
+                    <td className="border p-3">
+                      {formatDate(attempt.attemptedAt)}
+                    </td>
                     <td className="border p-3">
                       <span
                         className={`px-3 py-1 rounded-full text-white ${
@@ -121,12 +138,14 @@ export const UserAttempts = () => {
                       </span>
                     </td>
                     <td className="border p-3">
-                      <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-                        onClick={() => navigate(`/result/${attempt.id}`)}
-                      >
-                        View Details
-                      </button>
+                      {attempt.passed && (
+                        <button
+                          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
+                          onClick={() => handlePayment(attempt.id)}
+                        >
+                          Pay
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

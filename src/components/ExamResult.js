@@ -36,9 +36,9 @@ export const ExamResult = () => {
         <p className="text-2xl mt-4">Your Score: <span className="font-bold">{score}%</span></p>
         <button
           className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/attempts")}
         >
-          Back to Home
+          Go to Attempts
         </button>
       </div>
     </div>
