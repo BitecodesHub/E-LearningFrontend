@@ -9,11 +9,9 @@ import { Contact } from "./components/Contact";
 import { CourseModule } from "./components/CourseModule";
 import CourseModuleDetail from "./components/CourseModuleDetail";
 import { Courses } from "./components/Courses";
-import { CredentialVerify } from "./components/CredentialVerify";
 import { ExamResult } from "./components/ExamResult";
 import { Footer } from "./components/Footer";
 import { HomePage } from "./components/homepage";
-import { LeaderBoard } from "./components/LeaderBoard";
 import { LoginSignup } from "./components/login-signup";
 import ModuleList from "./components/ModuleList";
 import { Navbar } from "./components/Navbar";
@@ -26,6 +24,9 @@ import { Invoice } from "./components/test";
 import { UpdateProfile } from "./components/UpdateProfile";
 import { UserAttempts } from "./components/UserAttempts";
 import { VerifyOtp } from "./components/verifyotp";
+import { VerifyCredential } from "./components/VerifyCredential";
+
+import { LeaderBoard } from "./components/LeaderBoard";
 
 function App() {
   return (
@@ -55,8 +56,8 @@ function App() {
           <Route path="/result/:attemptId" element={<ExamResult />} />
           <Route path="/attempts" element={<UserAttempts />} />
           <Route path="/certificates" element={<ShowCertificates />} />
-          <Route path="/leaderboard" element={<LeaderBoard />} />
-          <Route path="/credential-verify" element={<CredentialVerify />} />
+          <Route path="/leaderboard" element={<LeaderBoard/>} />
+          <Route path="/credential-verify" element={<VerifyCredential />} />
           <Route path="/admincourses" element={<AdminCoursePanel />} />
           {/* Protect Routes */}
           {/* <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/> */}

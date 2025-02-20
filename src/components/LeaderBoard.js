@@ -1,30 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export const LeaderBoard = () => {
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const apiUrl =
+    process.env.REACT_APP_ENV === "production"
+      ? process.env.REACT_APP_LIVE_API
+      : process.env.REACT_APP_LOCAL_API;
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/certificates/leaderboard`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch leaderboard");
+        }
+        const data = await response.json();
+        setLeaderboard(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, [apiUrl]);
+
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-purple-50">
-      {/* Main content takes all available space between Navbar and Footer */}
-      <main className="flex-grow flex flex-col items-center justify-center">
-        <div className="w-full bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="min-h-full flex flex-col items-center justify-center p-32">
-            <div className="relative w-48 h-48 mb-12">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" />
-              <div className="absolute inset-2 bg-white rounded-full" />
-              <div className="absolute inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-spin" />
-            </div>
-
-            <h1 className="text-6xl font-black mb-8 p-10 text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent tracking-tight animate-pulse">
-              Coming Soon
-            </h1>
-
-            <div className="flex flex-row items-center justify-center space-x-4">
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" />
-              <div className="w-4 h-4 bg-purple-500 rounded-full animate-bounce delay-100" />
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce delay-200" />
-            </div>
-          </div>
-        </div>
-      </main>
+    <div className="w-full min-h-screen p-8 bg-gray-100">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-semibold text-center mb-6">Leaderboard</h1>
+        {loading && <p className="text-center text-gray-500">Loading...</p>}
+        {error && <p className="text-center text-red-500">{error}</p>}
+        {!loading && !error && (
+          <table className="w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border p-2">Rank</th>
+                <th className="border p-2">Student Name</th>
+                <th className="border p-2">Course</th>
+                <th className="border p-2">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.map((student, index) => (
+                <tr key={index} className="text-center">
+                  <td className="border p-2 font-bold">{index + 1}</td>
+                  <td className="border p-2">{student.userName}</td>
+                  <td className="border p-2">{student.courseName}</td>
+                  <td className="border p-2 text-blue-600 font-semibold">{student.score}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };
