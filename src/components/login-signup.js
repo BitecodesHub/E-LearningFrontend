@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 export const LoginSignup = () => {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +17,15 @@ export const LoginSignup = () => {
       navigate("/");
     } else {
       setError("Invalid email or password.");
+    }
+  };
+
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    const success = await googleLogin(credentialResponse);
+    if (success) {
+      navigate("/");
+    } else {
+      setError("Google authentication failed.");
     }
   };
 
@@ -69,6 +79,10 @@ export const LoginSignup = () => {
             {error}
           </p>
         )}
+
+        <div className="mt-6 flex justify-center">
+          <GoogleLogin onSuccess={handleGoogleLoginSuccess} onError={() => setError("Google Login Failed")} />
+        </div>
 
         <div className="mt-8 text-center">
           <p className="text-neutral-600">

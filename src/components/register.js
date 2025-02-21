@@ -1,43 +1,48 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Use useNavigate instead of useHistory
+import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Correct way for latest versions
+
 
 export const Register = () => {
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
-    password: "",
     email: "",
+    password: "",
     confirmPassword: "",
     role: "USER",
   });
   const [message, setMessage] = useState("");
-  const [showPassword] = useState(false); // State for password visibility
-  const [termsChecked, setTermsChecked] = useState(false); // State for terms checkbox
+  const [termsChecked, setTermsChecked] = useState(false);
 
-  const apiUrl = process.env.REACT_APP_ENV === 'production'
-  ? process.env.REACT_APP_LIVE_API
-  : process.env.REACT_APP_LOCAL_API;
+  const apiUrl =
+    process.env.REACT_APP_ENV === "production"
+      ? process.env.REACT_APP_LIVE_API
+      : process.env.REACT_APP_LOCAL_API;
 
+  // Handle input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  // const handlePasswordVisibility = () => {
-  //   setShowPassword(!showPassword); // Toggle password visibility
-  // };
 
   const handleTermsChange = (e) => {
-    setTermsChecked(e.target.checked); // Set the checkbox state
+    setTermsChecked(e.target.checked);
   };
 
-  // Validate email, password matching, and terms acceptance
+  // Validate form before submission
   const validateForm = () => {
+    if (!formData.username.trim()) {
+      setMessage("Username cannot be empty.");
+      return false;
+    }
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
       setMessage("Please enter a valid email address.");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setMessage("Password must be at least 6 characters.");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -51,50 +56,70 @@ export const Register = () => {
     return true;
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) return; // If validation fails, do not proceed
+    if (!validateForm()) return;
 
     try {
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-  
-      if (response.ok) {
-        setMessage("Registered successfully. Please check your email for OTP.");
-        // Redirect to /verify-otp after successful registration
-        navigate("/verify-otp", { state: { email: formData.email } }); // Pass email to verify-otp page
-      } else {
-        const errorResponse = await response.json();
-        setMessage(errorResponse.message); // Show backend error message
+      const response = await axios.post(`${apiUrl}/api/auth/register`, formData);
+      if (response.status === 200) {
+        setMessage("Registered successfully. Check your email for OTP.");
+        navigate("/verify-otp", { state: { email: formData.email } });
       }
     } catch (error) {
-      setMessage("An error occurred. Please try again.");
+      setMessage(error.response?.data?.message || "Registration failed.");
     }
   };
 
+  // Handle Google OAuth login
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    try {
+      const token = credentialResponse.credential;
+  
+      // Decode the JWT token to extract user details
+      const decoded = jwtDecode(token); // Use jwtDecode (not jwt_decode)
+      const { email, name, picture } = decoded;
+  
+      // Send user details directly to backend
+      const response = await axios.post(`${apiUrl}/api/auth/google-auth`, {
+        email,
+        name,
+        picture,
+      });
+  
+      if (response.data.success) {
+        setMessage("Google login successful.");
+        navigate("/login");
+      } else {
+        setMessage("Google authentication failed.");
+      }
+    } catch (error) {
+      console.error("Google Login Failed", error);
+      setMessage("Google authentication failed.");
+    }
+  };
+  
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4 sm:px-0 py-8">
-      <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all">
-        <div className="mb-4 sm:mb-6 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold">Learn Without Limits</h1>
-          <p className="mt-2 text-sm sm:text-base">Create your account and start learning today</p>
-        </div>
+    <GoogleOAuthProvider clientId="373447199487-17q7ruiigmv5c612s0sjbdb65dmcpm5i.apps.googleusercontent.com">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4 sm:px-0 py-8">
+        <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all">
+          <div className="mb-4 sm:mb-6 text-center">
+            <h1 className="text-xl sm:text-2xl font-bold">Join Us Today</h1>
+            <p className="mt-2 text-sm sm:text-base">Create an account to get started</p>
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 sm:space-y-5">
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="UserName"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              placeholder="Username"
+              className="w-full rounded-lg border px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              required
             />
             <input
               type="email"
@@ -102,25 +127,29 @@ export const Register = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Email Address"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              className="w-full rounded-lg border px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              required
             />
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              className="w-full rounded-lg border px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              required
             />
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Confirm Password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              className="w-full rounded-lg border px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 outline-none"
+              required
             />
 
+            {/* Terms & Conditions */}
             <div className="flex items-center text-sm sm:text-base">
               <input
                 type="checkbox"
@@ -130,32 +159,46 @@ export const Register = () => {
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
               />
               <label htmlFor="terms" className="ml-2">
-                I agree to the Terms and Conditions
+                I agree to the <span className="text-blue-600 font-medium">Terms & Conditions</span>
               </label>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-blue-600 text-white font-semibold py-2 sm:py-3 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition-all"
             >
               Create Account
             </button>
-          </div>
-        </form>
+          </form>
 
-        {message && (
-          <div className="mt-4 text-center text-sm text-red-600">
-            {message}
-          </div>
-        )}
+          {/* OR Separator */}
+          <div className="mt-4 text-center text-sm font-medium">OR</div>
 
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-600 font-medium hover:underline">
-            Sign in
-          </a>
+          {/* Google OAuth Login */}
+          <div className="mt-4 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={() => setMessage("Google login failed.")}
+            />
+          </div>
+
+          {/* Error Message Display */}
+          {message && (
+            <div className="mt-4 text-center text-sm text-red-600">
+              {message}
+            </div>
+          )}
+
+          {/* Login Redirect */}
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{" "}
+            <a href="/login" className="text-blue-600 font-medium hover:underline">
+              Sign in
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </GoogleOAuthProvider>
   );
 };
