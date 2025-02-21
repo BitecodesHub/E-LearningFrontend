@@ -8,20 +8,25 @@ export const TakeExam = () => {
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(40 * 60);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
       ? process.env.REACT_APP_LIVE_API
       : process.env.REACT_APP_LOCAL_API;
 
   useEffect(() => {
-    console.log("Course ID:", courseId);
     fetch(`${apiUrl}/api/exams/course/${courseId}/random`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Received Questions:", data);
         setQuestions(data);
+        setLoading(false);
       })
-      .catch((err) => console.error("Error fetching questions:", err));
+      .catch((err) => {
+        console.error("Error fetching questions:", err);
+        setLoading(false);
+      });
   }, [courseId, apiUrl]);
 
   useEffect(() => {
@@ -49,17 +54,20 @@ export const TakeExam = () => {
   };
 
   const submitExam = () => {
+    setSubmitting(true); // Show waiting message
     fetch(`${apiUrl}/api/exams/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: 1, courseId, answers }),
     })
-      .then((res) => res.json()) // Get response containing attemptId
+      .then((res) => res.json())
       .then((data) => {
-        console.log("Exam Attempt Response:", data);
-        navigate(`/result/${data.id}`); // Navigate with attemptId
+        navigate(`/result/${data.id}`);
       })
-      .catch((err) => console.error("Error submitting exam:", err));
+      .catch((err) => {
+        console.error("Error submitting exam:", err);
+        setSubmitting(false);
+      });
   };
 
   return (
@@ -72,7 +80,18 @@ export const TakeExam = () => {
           Time Left: <span className="text-red-500">{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</span>
         </div>
 
-        {questions.length > 0 ? (
+        {/* Show Loading Spinner While Fetching Questions */}
+        {loading ? (
+          <div className="flex justify-center items-center mt-6">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin"></div>
+          </div>
+        ) : submitting ? (
+          /* Show "Waiting for result..." with spinner */
+          <div className="flex flex-col items-center mt-6">
+            <p className="text-lg font-semibold text-gray-700">Waiting for result...</p>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin mt-3"></div>
+          </div>
+        ) : questions.length > 0 ? (
           <>
             <div className="mt-6">
               <h2 className="text-xl font-bold text-gray-700 mb-4">
@@ -134,7 +153,7 @@ export const TakeExam = () => {
             </div>
           </>
         ) : (
-          <p className="text-center text-gray-600 mt-6">Loading questions...</p>
+          <p className="text-center text-gray-600 mt-6">No questions available.</p>
         )}
       </div>
     </div>

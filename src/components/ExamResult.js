@@ -21,13 +21,23 @@ export const ExamResult = () => {
   }, [attemptId]);
 
   if (!result) {
-    return <div className="text-center text-xl font-bold mt-10">Loading results...</div>;
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 rounded w-3/4 mb-4"></div>
+            <div className="h-6 bg-gray-300 rounded w-1/2 mb-4"></div>
+            <div className="h-12 bg-gray-300 rounded w-full mb-6"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const { score, passed } = result;
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex justify-between">
-      <div className="flex-grow w-full bg-white rounded-xl shadow-xl p-10 text-center">
+    <div className="w-full min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex justify-center items-center">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-10 text-center">
         {passed ? (
           <h1 className="text-4xl font-bold text-green-600">🎉 Congratulations! You Passed! 🎉</h1>
         ) : (
