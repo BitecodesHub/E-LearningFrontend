@@ -30,7 +30,7 @@ export const LeaderBoard = () => {
 
   return (
     <div className="w-full min-h-screen p-8 bg-gray-100">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl my-3 mx-auto">
         <h1 className="text-3xl font-semibold text-center mb-6">Leaderboard</h1>
         {loading && <p className="text-center text-gray-500">Loading...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
@@ -50,7 +50,9 @@ export const LeaderBoard = () => {
                   <td className="border p-2 font-bold">{index + 1}</td>
                   <td className="border p-2">{student.userName}</td>
                   <td className="border p-2">{student.courseName}</td>
-                  <td className="border p-2 text-blue-600 font-semibold">{student.score}%</td>
+                  <td className="border p-2 text-blue-600 font-semibold">
+                    {student.score}%
+                  </td>
                 </tr>
               ))}
             </tbody>

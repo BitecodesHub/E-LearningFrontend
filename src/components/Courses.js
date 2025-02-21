@@ -42,7 +42,7 @@ export const Courses = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-4">
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="text-center mb-12">
           <h2 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight py-5">
             Available Courses

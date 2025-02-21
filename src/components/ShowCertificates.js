@@ -46,7 +46,7 @@ export const ShowCertificates = () => {
 
   const handleDownload = () => {
     const certificateElement = document.getElementById("certificate");
-    if (certificateElement) {
+    if (certificateElement) { 
       const data = certificateElement.outerHTML;
       const blob = new Blob([data], { type: "text/html" });
       const url = URL.createObjectURL(blob);
@@ -64,19 +64,21 @@ export const ShowCertificates = () => {
       <div className="w-full">
         <main className="bg-gray-100 min-h-screen p-8">
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h1 className="text-3xl font-semibold text-center mb-6">
+            <h1 className="non_certificate text-3xl font-semibold text-center mb-6">
               Your Certificates
             </h1>
 
             {loading ? (
-              <p className="text-center text-gray-500">Loading certificates...</p>
+              <p className="text-center text-gray-500">
+                Loading certificates...
+              </p>
             ) : certificates.length > 0 ? (
               <div className="mb-8">
                 <div className="w-64">
-                  <span className="block text-lg font-semibold mb-2">
+                  <span className="non_certificate block text-lg font-semibold mb-2">
                     Select Certificate:
                   </span>
-                  <div className="space-y-3">
+                  <div className="non_certificate space-y-3">
                     {certificates.map((certificate, index) => (
                       <div
                         key={certificate.id}
@@ -97,7 +99,9 @@ export const ShowCertificates = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-center text-gray-600">No certificates found.</p>
+              <p className="text-center text-gray-600">
+                No certificates found.
+              </p>
             )}
 
             {selectedCertificate && (
@@ -155,7 +159,9 @@ export const ShowCertificates = () => {
                   <div className="text-center">
                     <p className="text-gray-600 mb-4">Issued on</p>
                     <p className="font-semibold">
-                      {new Date(selectedCertificate.issuedAt).toLocaleDateString()}
+                      {new Date(
+                        selectedCertificate.issuedAt
+                      ).toLocaleDateString()}
                     </p>
                   </div>
 
@@ -172,7 +178,7 @@ export const ShowCertificates = () => {
             )}
 
             {selectedCertificate && (
-              <div className="text-center mt-8 flex justify-center gap-4">
+              <div className="non_certificate text-center mt-8 flex justify-center gap-4">
                 <button
                   onClick={handlePrint}
                   className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
