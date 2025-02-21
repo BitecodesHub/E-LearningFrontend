@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { SiPython, SiMysql, SiMongodb, SiRust, SiCplusplus } from "react-icons/si";
@@ -8,6 +8,7 @@ export const HomePage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const hasFetched = useRef(false); // Prevents duplicate API calls
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -15,8 +16,11 @@ export const HomePage = () => {
       : process.env.REACT_APP_LOCAL_API;
 
   useEffect(() => {
-    fetchCourses();
-  });
+    if (!hasFetched.current) {
+      hasFetched.current = true; // Set flag to true so it doesn't call again
+      fetchCourses();
+    }
+  }, []);
 
   const fetchCourses = async () => {
     try {
@@ -58,7 +62,6 @@ export const HomePage = () => {
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {loading ? (
-            // Skeleton Loader
             [...Array(6)].map((_, index) => (
               <div
                 key={index}

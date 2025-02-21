@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 export const CourseModule = () => {
   const { courseId } = useParams(); // Get course ID from URL params
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const hasFetched = useRef(false); // Prevent duplicate API calls
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -12,6 +14,9 @@ export const CourseModule = () => {
       : process.env.REACT_APP_LOCAL_API;
 
   useEffect(() => {
+    if (hasFetched.current) return; // Prevent duplicate calls
+    hasFetched.current = true;
+
     fetch(`${apiUrl}/module/course/${courseId}`)
       .then((response) => response.json())
       .then((data) => {
