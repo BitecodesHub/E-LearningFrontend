@@ -20,7 +20,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Register } from "./components/register";
 import { ShowCertificates } from "./components/ShowCertificates";
 import { TakeExam } from "./components/TakeExam";
-import { Invoice } from "./components/test";
 import { UpdateProfile } from "./components/UpdateProfile";
 import { UserAttempts } from "./components/UserAttempts";
 import { VerifyOtp } from "./components/verifyotp";
