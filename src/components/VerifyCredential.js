@@ -11,47 +11,54 @@ export const VerifyCredential = () => {
       ? process.env.REACT_APP_LIVE_API
       : process.env.REACT_APP_LOCAL_API;
 
-  const handleSearch = async () => {
-    setLoading(true);
-    setError("");
-    setCertificate(null);
-
-    try {
-      // Step 1: Fetch Certificate Details
-      const certResponse = await fetch(`${apiUrl}/api/certificates/credential/${credentialId}`);
-      if (!certResponse.ok) throw new Error("Certificate not found");
-
-      const certData = await certResponse.json();
+      const handleSearch = async () => {
+        if (!credentialId.trim()) {
+          setError("Please enter a Credential ID.");
+          return;
+        }
       
-      // Step 2: Fetch User Name
-      const userResponse = await fetch(`${apiUrl}/api/auth/getUsername/${certData.userId}`);
-      if (!userResponse.ok) throw new Error("User not found");
-
-      const userData = await userResponse.text();
-
-      // Step 3: Fetch Course Name
-      const courseResponse = await fetch(`${apiUrl}/course/getCourseName/${certData.courseId}`);
-      if (!courseResponse.ok) throw new Error("Course not found");
-
-      const courseName = await courseResponse.text();
-
-      // Step 4: Update Certificate Data
-      setCertificate({
-        ...certData,
-        userFirstName: userData, // Adjust based on actual response key
-        courseName: courseName,
-      });
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+        setLoading(true);
+        setError("");
+        setCertificate(null);
+      
+        try {
+          // Step 1: Fetch Certificate Details
+          const certResponse = await fetch(`${apiUrl}/api/certificates/credential/${credentialId}`);
+          const certText = await certResponse.text();
+          
+          if (!certText) throw new Error("Certificate not found"); // Handle empty response
+      
+          const certData = JSON.parse(certText);
+      
+          // Step 2: Fetch User Name
+          const userResponse = await fetch(`${apiUrl}/api/auth/getUsername/${certData.userId}`);
+          const userText = await userResponse.text();
+          
+          if (!userText) throw new Error("User not found"); // Handle empty response
+      
+          // Step 3: Fetch Course Name
+          const courseResponse = await fetch(`${apiUrl}/course/getCourseName/${certData.courseId}`);
+          const courseText = await courseResponse.text();
+          
+          if (!courseText) throw new Error("Course not found"); // Handle empty response
+      
+          // Step 4: Update Certificate Data
+          setCertificate({
+            ...certData,
+            userFirstName: userText,
+            courseName: courseText,
+          });
+      
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
   return (
-    <div className="w-full min-h-screen p-8 bg-gray-100">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg mx-auto">
+    <div className="w-full min-h-screen p-8 bg-gray-100 flex justify-center items-center">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full">
         <h1 className="text-3xl font-semibold text-center mb-6">Verify Certificate</h1>
         <div className="flex gap-4">
           <input
@@ -63,14 +70,18 @@ export const VerifyCredential = () => {
           />
           <button
             onClick={handleSearch}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            disabled={loading || !credentialId.trim()}
+            className={`px-6 py-2 rounded-lg text-white ${credentialId.trim() ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
           >
-            Search
+            {loading ? "Searching..." : "Search"}
           </button>
         </div>
-        {loading && <p className="text-center text-gray-500 mt-4">Searching...</p>}
-        {error && <p className="text-center text-red-500 mt-4">{error}</p>}
-        {certificate && (
+
+        {error && (
+          <p className="text-center text-red-500 mt-4">{error}</p>
+        )}
+
+        {certificate ? (
           <div className="border-8 border-blue-100 p-12 mt-6">
             <h2 className="text-3xl font-serif font-bold text-blue-800 text-center">
               {certificate.userFirstName}
@@ -95,6 +106,10 @@ export const VerifyCredential = () => {
               Issued on: {new Date(certificate.issuedAt).toLocaleDateString()}
             </p>
           </div>
+        ) : (
+          error === "Certificate not found" && (
+            <p className="text-center text-gray-600 mt-6">No certificate found for the given Credential ID.</p>
+          )
         )}
       </div>
     </div>
