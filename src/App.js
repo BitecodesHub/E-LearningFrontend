@@ -39,12 +39,7 @@ function App() {
           <Route path="/login" element={<LoginSignup />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/courses" element={<Courses />} />
-          <Route path="/invoice" element={<Invoice />} />
           <Route path="/course/modules" element={<ModuleList />} />
-          {/* <Route path="/course/:courseId/module/:moduleNumber" element={<ModuleDetail />} /> */}
-          <Route path="/course/add-module" element={<AddModule />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/addcourse" element={<AddCourse />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
           <Route
@@ -52,30 +47,45 @@ function App() {
             element={<CourseModuleDetail />}
           />
           <Route path="/course/:courseId/modules" element={<CourseModule />} />
-          <Route path="/course/:courseId/exam" element={<TakeExam />} />
-          <Route path="/result/:attemptId" element={<ExamResult />} />
-          <Route path="/attempts" element={<UserAttempts />} />
-          <Route path="/certificates" element={<ShowCertificates />} />
           <Route path="/leaderboard" element={<LeaderBoard/>} />
           <Route path="/credential-verify" element={<VerifyCredential />} />
-          <Route path="/admincourses" element={<AdminCoursePanel />} />
+          
+
           {/* Protect Routes */}
+          {/* <Route path="/course/:courseId/exam" element={<TakeExam />} />
+          <Route path="/admincourses" element={<AdminCoursePanel />} />
+          <Route path="/certificates" element={<ShowCertificates />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/addcourse" element={<AddCourse />} />
+          <Route path="/result/:attemptId" element={<ExamResult />} />
+          <Route path="/course/add-module" element={<AddModule />} />
+          <Route path="/attempts" element={<UserAttempts />} /> */}
           {/* <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/> */}
+
+
+          <Route path="/course/:courseId/exam" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />
+        <Route path="/admincourses" element={<ProtectedRoute><AdminCoursePanel /></ProtectedRoute>} />
+        <Route path="/certificates" element={<ProtectedRoute><ShowCertificates /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+        <Route path="/addcourse" element={<ProtectedRoute><AddCourse /></ProtectedRoute>} />
+        <Route path="/result/:attemptId" element={<ProtectedRoute><ExamResult /></ProtectedRoute>} />
+        <Route path="/course/add-module" element={<ProtectedRoute><AddModule /></ProtectedRoute>} />
+        <Route path="/attempts" element={<ProtectedRoute><UserAttempts /></ProtectedRoute>} />
+
           <Route
-            path="/updateprofile"
-            element={
-              <ProtectedRoute>
-                {" "}
-                <UpdateProfile />{" "}
-              </ProtectedRoute>
-            }
-          />
+          path="/updateprofile"
+          element={
+            <ProtectedRoute>
+              <UpdateProfile />
+            </ProtectedRoute>
+          }
+        />
+
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
-                {" "}
-                <Profile />{" "}
+                <Profile />
               </ProtectedRoute>
             }
           />
