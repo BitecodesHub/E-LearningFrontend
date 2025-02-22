@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import { FiAlertCircle, FiLock, FiMail } from "react-icons/fi";
 
 export const LoginSignup = () => {
   const { login, googleLogin } = useAuth();
@@ -30,77 +32,134 @@ export const LoginSignup = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200">
-      <div className="w-full max-w-sm bg-white rounded-lg shadow-xl p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Learn Without Limits</h1>
-          <p className="text-neutral-600">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 flex items-center justify-center p-4">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(7)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute bg-gradient-to-r from-blue-400/30 to-purple-300/30 w-64 h-64 rounded-full blur-[100px]"
+            initial={{ scale: 0, rotate: Math.random() * 360 }}
+            animate={{
+              scale: [0, 1, 0],
+              x: [0, Math.random() * 400 - 200, 0],
+              y: [0, Math.random() * 400 - 200, 0],
+            }}
+            transition={{
+              duration: 15 + Math.random() * 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-neutral-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 outline-none"
-              placeholder="your@email.com"
-              required
-              aria-label="Enter your email"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-neutral-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 outline-none"
-              placeholder="Enter your password"
-              required
-              aria-label="Enter your password"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
-          >
-            Sign in
-          </button>
-        </form>
-
-        {error && (
-          <p className="text-center text-red-600 mt-4 bg-red-100 p-2 rounded-md">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-6 flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleLoginSuccess} onError={() => setError("Google Login Failed")} />
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-neutral-600">
-            Don't have an account?{" "}
-            <span
-              onClick={() => navigate("/register")}
-              className="text-blue-600 font-medium hover:text-blue-700 hover:underline cursor-pointer transition duration-200"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative w-full max-w-md bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl overflow-hidden border border-indigo-100"
+      >
+        <div className="px-8 py-12">
+          <div className="mb-10 text-center">
+            <motion.h1
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent mb-4"
             >
-              Sign up
-            </span>
-          </p>
+              Learn Without Limits
+            </motion.h1>
+            <p className="text-gray-600 text-lg">Elevate Your Learning Experience</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-3 flex items-center">
+                <FiMail className="mr-2 text-indigo-500" />
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-400 text-gray-900 transition-all"
+                placeholder="your@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-3 flex items-center">
+                <FiLock className="mr-2 text-indigo-500" />
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-400 text-gray-900 transition-all"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-300/30"
+            >
+              Continue
+            </motion.button>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 p-3 bg-pink-50 text-pink-700 rounded-lg border border-pink-100"
+              >
+                <FiAlertCircle className="flex-shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </form>
+
+          <div className="my-8 flex items-center">
+            <div className="flex-1 border-t border-indigo-100" />
+            <span className="px-4 text-gray-500 text-sm">or continue with</span>
+            <div className="flex-1 border-t border-indigo-100" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={() => setError("Google Login Failed")}
+              theme="filled_white"
+              shape="pill"
+            />
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-600">
+              New here?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-indigo-600 hover:text-indigo-500 font-medium underline underline-offset-4 hover:underline-offset-2 transition-all"
+              >
+                Create account
+              </button>
+            </p>
+          </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-center">
-          <span className="material-symbols-outlined text-neutral-400 hover:text-neutral-600 cursor-pointer transition duration-200">
-            help
-          </span>
-        </div>
+        {/* Decorative corner elements */}
+        <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-indigo-100" />
+        <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-indigo-100" />
+      </motion.div>
+
+      {/* Floating helper icon */}
+      <div className="absolute bottom-8 right-8 animate-bounce">
+        <FiAlertCircle className="text-indigo-400 w-8 h-8 opacity-50 hover:opacity-75 cursor-help transition-opacity" />
       </div>
     </div>
   );

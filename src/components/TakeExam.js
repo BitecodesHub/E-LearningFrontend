@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 
 export const TakeExam = () => {
   const { courseId } = useParams();
+  const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
@@ -58,7 +59,7 @@ export const TakeExam = () => {
     fetch(`${apiUrl}/api/exams/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: 1, courseId, answers }),
+      body: JSON.stringify({ userId: userId, courseId, answers }),
     })
       .then((res) => res.json())
       .then((data) => {

@@ -7,7 +7,7 @@ export const UserAttempts = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [certificates, setCertificates] = useState([]);
-  const userId = 1; // Change this to dynamic user ID
+  const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
   const navigate = useNavigate();
 
   const apiUrl =

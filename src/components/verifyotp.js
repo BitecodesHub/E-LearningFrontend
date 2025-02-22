@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FiAlertCircle } from "react-icons/fi";
 
 export const VerifyOtp = () => {
-  const location = useLocation(); // Get location object
-  const navigate = useNavigate(); // Initialize navigate function
-  const email = location.state?.email; // Retrieve email from state
+  const location = useLocation();
+  const navigate = useNavigate();
+  const email = location.state?.email;
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
 
@@ -19,27 +21,20 @@ export const VerifyOtp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await fetch(`${apiUrl}/api/auth/verify-otp`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          otp: otp,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setMessage(data.message); // Show success message
-        // Redirect to /home after successful OTP verification
+        setMessage(data.message);
         navigate("/login");
       } else {
         const errorResponse = await response.json();
-        setMessage(errorResponse.message); // Show backend error message
+        setMessage(errorResponse.message);
       }
     } catch (error) {
       setMessage("An error occurred. Please try again.");
@@ -47,64 +42,63 @@ export const VerifyOtp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-6 sm:py-8">
-      <div className="mx-auto w-full max-w-[480px] px-4 sm:px-0">
-        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-          <div className="mb-6 sm:mb-8 text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold">Verify OTP</h1>
-            <p className="mt-2 text-xs sm:text-sm">
-              Please enter the verification code sent to your email
-            </p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 p-4 relative overflow-hidden">
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute bg-gradient-to-r from-blue-400/30 to-purple-300/30 w-64 h-64 rounded-full blur-[100px]"
+          initial={{ scale: 0, rotate: Math.random() * 360 }}
+          animate={{ scale: [0, 1, 0], x: [0, Math.random() * 400 - 200, 0], y: [0, Math.random() * 400 - 200, 0] }}
+          transition={{ duration: 15 + Math.random() * 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+      ))}
 
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={handleOtpChange}
-                  placeholder="Enter OTP"
-                  maxLength="6"
-                  className="w-full rounded-lg border border-gray-200 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-center tracking-widest transition-all duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative w-full max-w-md bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl overflow-hidden border border-indigo-100 p-8"
+      >
+        <h1 className="text-3xl font-bold text-center text-indigo-600 mb-6">Verify OTP</h1>
+        <p className="text-center text-sm text-gray-600 mb-4">Enter the OTP sent to {email}</p>
 
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-blue-600 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Verify OTP
-              </button>
-            </div>
-          </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={otp}
+            onChange={handleOtpChange}
+            placeholder="Enter OTP"
+            maxLength="6"
+            className="w-full px-4 py-3 border rounded-xl text-center text-lg tracking-widest focus:ring-2 focus:ring-indigo-400 outline-none"
+          />
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-xl shadow-lg hover:shadow-indigo-300/30"
+          >
+            Verify OTP
+          </motion.button>
+        </form>
 
-          {message && (
-            <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-green-600">
-              {message}
-            </div>
-          )}
+        {message && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-2 p-3 bg-pink-50 text-pink-700 rounded-lg border border-pink-100 mt-4"
+          >
+            <FiAlertCircle className="flex-shrink-0" />
+            <span>{message}</span>
+          </motion.div>
+        )}
 
-          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            Didn't receive the code?{" "}
-            <a
-              href="/"
-              className="ml-1 font-medium text-blue-600 hover:text-blue-700"
-            >
-              Resend OTP
-            </a>
-          </div>
-
-          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            <a
-              href="/"
-              className="font-medium text-blue-600 hover:text-blue-700"
-            >
-              Go back
-            </a>
-          </div>
+        <div className="mt-4 text-center text-gray-600">
+          Didn't receive the code? <button className="text-indigo-600 underline">Resend OTP</button>
         </div>
-      </div>
+        <div className="mt-2 text-center text-gray-600">
+          <button onClick={() => navigate("/register")} className="text-indigo-600 underline">Go back</button>
+        </div>
+      </motion.div>
     </div>
   );
 };
