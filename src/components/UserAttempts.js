@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion"; // Import Framer Motion for animations
+import { motion } from "framer-motion";
+import { TrophyIcon, CalendarDaysIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 
 export const UserAttempts = () => {
   const [attempts, setAttempts] = useState([]);
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [certificates, setCertificates] = useState([]);
-  const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
+  const userId = sessionStorage.getItem("userId");
   const navigate = useNavigate();
 
   const apiUrl =
@@ -15,45 +16,31 @@ export const UserAttempts = () => {
       ? process.env.REACT_APP_LIVE_API
       : process.env.REACT_APP_LOCAL_API;
 
-  // Fetch attempts
   useEffect(() => {
     fetch(`${apiUrl}/api/attempts/user/${userId}`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Fetched Attempts:", data);
-        setAttempts(Array.isArray(data) ? data : []);
-      })
+      .then((data) => setAttempts(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching attempts:", err));
   }, [userId, apiUrl]);
 
-  // Fetch courses
   useEffect(() => {
     fetch(`${apiUrl}/course/getCourses`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Fetched Courses:", data);
-        setCourses(Array.isArray(data) ? data : []);
-      })
+      .then((data) => setCourses(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching courses:", err));
   }, [apiUrl]);
 
-  // Fetch user certificates
   useEffect(() => {
     fetch(`${apiUrl}/api/certificates/user/${userId}`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Fetched Certificates:", data);
-        setCertificates(Array.isArray(data) ? data : []);
-      })
+      .then((data) => setCertificates(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching certificates:", err));
   }, [userId, apiUrl]);
 
-  // Function to check if a certificate exists for a given course ID
   const hasCertificate = (courseId) => {
     return Array.isArray(certificates) && certificates.some((cert) => cert.courseId === courseId);
   };
 
-  // Function to format date properly
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString("en-US", {
@@ -66,7 +53,6 @@ export const UserAttempts = () => {
     });
   };
 
-  // Get course name by ID
   const getCourseName = (courseId) => {
     const course = courses.find((c) => c.id === courseId);
     return course ? course.name : "Unknown Course";
@@ -74,22 +60,19 @@ export const UserAttempts = () => {
 
   const handlePayment = async (attempt) => {
     try {
-      const paymentData = new URLSearchParams({
+      const params = new URLSearchParams({
         userId: attempt.userId,
-        amount: 50, // Adjust amount if needed
+        amount: 50,
         paymentMethod: "UPI",
         upiId: "user@upi",
         appName: "PhonePe",
       });
 
-      // Initiate Payment
-      const paymentResponse = await fetch(`${apiUrl}/payments/initiate?${paymentData.toString()}`, {
+      const paymentResponse = await fetch(`${apiUrl}/payments/initiate?${params.toString()}`, {
         method: "POST",
       });
 
       const result = await paymentResponse.json();
-      console.log("Payment Initiation Response:", result);
-
       if (!result.transactionId) {
         alert("Payment initiation failed. Please try again.");
         return;
@@ -103,24 +86,24 @@ export const UserAttempts = () => {
         description: "Exam Payment",
         order_id: result.transactionId,
         handler: async function (response) {
-          console.log("Razorpay Success Response:", response);
-
-          await fetch(`${apiUrl}/payments/update?transactionId=${result.transactionId}&status=SUCCESS`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+          const updateParams = new URLSearchParams({
+            transactionId: result.transactionId,
+            status: "SUCCESS",
           });
 
-          // Issue Certificate
-          const certificateResponse = await fetch(
-            `${apiUrl}/api/certificates?userId=${attempt.userId}&courseId=${attempt.courseId}&score=${attempt.score}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            }
-          );
+          await fetch(`${apiUrl}/payments/update?${updateParams.toString()}`, {
+            method: "POST",
+          });
 
-          const certResult = await certificateResponse.json();
-          console.log("Certificate Issued:", certResult);
+          const certParams = new URLSearchParams({
+            userId: attempt.userId,
+            courseId: attempt.courseId,
+            score: attempt.score,
+          });
+
+          await fetch(`${apiUrl}/api/certificates?${certParams.toString()}`, {
+            method: "POST",
+          });
 
           alert("Payment Successful! Certificate Issued.");
           navigate("/certificates");
@@ -146,7 +129,6 @@ export const UserAttempts = () => {
     }
   };
 
-  // Filter attempts based on selected course
   const filteredAttempts =
     selectedCourse === "all"
       ? attempts
@@ -154,20 +136,22 @@ export const UserAttempts = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-purple-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 p-4 md:p-10"
     >
-      <div className="flex-grow max-w-5xl mx-auto bg-white shadow-2xl rounded-lg p-8 my-10 w-full">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">My Exam Attempts</h1>
+      <div className="w-full max-w-6xl bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-10">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-8 text-center">
+          My Exam History
+        </h1>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 font-bold mb-2">Select Course:</label>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <label className="text-lg font-medium text-gray-700">Filter by Course:</label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full md:w-72 px-4 py-3 border-2 border-purple-100 rounded-xl focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all cursor-pointer"
           >
             <option value="all">All Courses</option>
             {courses.map((course) => (
@@ -179,52 +163,66 @@ export const UserAttempts = () => {
         </div>
 
         {filteredAttempts.length === 0 ? (
-          <p className="text-center text-gray-500">No attempts found.</p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center p-8 rounded-xl bg-purple-50/50"
+          >
+            <p className="text-gray-500 text-lg">No attempts found for this course</p>
+          </motion.div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                  <th className="p-4 text-left">Attempt ID</th>
-                  <th className="p-4 text-left">Course</th>
-                  <th className="p-4 text-left">Score</th>
-                  <th className="p-4 text-left">Date</th>
-                  <th className="p-4 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAttempts.map((attempt, index) => (
-                  <motion.tr
-                    key={attempt.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                    className="border-b hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="p-4">{attempt.id}</td>
-                    <td className="p-4">{getCourseName(attempt.courseId)}</td>
-                    <td className="p-4">{attempt.score}%</td>
-                    <td className="p-4">{formatDate(attempt.attemptedAt)}</td>
-                    <td className="p-4">
-                      {hasCertificate(attempt.courseId) ? (
-                        <span className="px-4 py-2 rounded-full bg-gray-200 text-gray-700 text-sm">
-                          Already Have Certificate
-                        </span>
-                      ) : (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
-                          onClick={() => handlePayment(attempt)}
-                        >
-                          Pay
-                        </motion.button>
-                      )}
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAttempts.map((attempt, index) => (
+              <motion.div
+                key={attempt.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                whileHover={{ scale: 1.02 }}
+                className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl p-6 flex flex-col transition-all duration-300"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                    {getCourseName(attempt.courseId)}
+                  </h2>
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrophyIcon className="w-5 h-5 text-amber-500" />
+                    <span className={`text-sm font-medium ${
+                      attempt.score >= 70 ? 'text-green-600' : 'text-orange-600'
+                    }`}>
+                      {attempt.score}% Score
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {formatDate(attempt.attemptedAt)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 w-full">
+                    {hasCertificate(attempt.courseId) ? (
+                      <div className="flex items-center justify-center gap-2 bg-emerald-100/80 text-emerald-700 py-2.5 rounded-xl text-sm">
+                        <CheckBadgeIcon className="w-5 h-5" />
+                        Certificate Issued
+                      </div>
+                    ) : (
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handlePayment(attempt)}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all"
+                      >
+                        Get Certificate - $49
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>
