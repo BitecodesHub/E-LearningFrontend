@@ -34,13 +34,13 @@ export const HomePage = () => {
   };
 
   const courseIcons = {
-    Python: <SiPython size={50} color="#306998" />,
-    Java: <DiJava size={50} color="#007396" />,
-    "C++": <SiCplusplus size={50} color="#00599C" />,
-    MySQL: <SiMysql size={50} color="#4479A1" />,
-    MongoDB: <SiMongodb size={50} color="#47A248" />,
-    Rust: <SiRust size={50} color="#DEA584" />,
-    React: <DiReact size={50} color="#61DAFB" />,
+    python: <SiPython size={50} color="#306998" />,
+    java: <DiJava size={50} color="#007396" />,
+    "c++": <SiCplusplus size={50} color="#00599C" />,
+    mysql: <SiMysql size={50} color="#4479A1" />,
+    mongodb: <SiMongodb size={50} color="#47A248" />,
+    rust: <SiRust size={50} color="#DEA584" />,
+    react: <DiReact size={50} color="#61DAFB" />,
   };
 
   return (
@@ -73,19 +73,23 @@ export const HomePage = () => {
               </div>
             ))
           ) : courses.length > 0 ? (
-            courses.map((course, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col items-center cursor-pointer"
-                onClick={() => navigate(`/course/${course.id}/modules`)}
-              >
-                <span className="text-5xl mb-4 text-indigo-600">
-                  {courseIcons[course.name] || <DiReact size={50} color="#61DAFB" />}
-                </span>
-                <h3 className="text-xl font-semibold mb-2 text-center">{course.name}</h3>
-                <p className="text-center">{course.description}</p>
-              </div>
-            ))
+            courses.map((course, index) => {
+              // Normalize name: trim spaces and convert to lowercase
+              const normalizedName = course.name.trim().toLowerCase();
+              return (
+                <div
+                  key={index}
+                  className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col items-center cursor-pointer"
+                  onClick={() => navigate(`/course/${course.id}/modules`)}
+                >
+                  <span className="text-5xl mb-4 text-indigo-600">
+                    {courseIcons[normalizedName] || <DiReact size={50} color="#61DAFB" />}
+                  </span>
+                  <h3 className="text-xl font-semibold mb-2 text-center">{course.name.trim()}</h3>
+                  <p className="text-center">{course.description}</p>
+                </div>
+              );
+            })
           ) : (
             <p className="text-center text-gray-600">No courses available at the moment.</p>
           )}

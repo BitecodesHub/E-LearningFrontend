@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FiEye, FiEyeOff, FiUser, FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiUser, FiMail, FiLock, FiAlertCircle, FiCheck } from "react-icons/fi";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -64,78 +64,167 @@ export const Register = () => {
     }
   };
 
+  
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 p-4 relative overflow-hidden">
+    <GoogleOAuthProvider clientId="373447199487-17q7ruiigmv5c612s0sjbdb65dmcpm5i.apps.googleusercontent.com">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(7)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-gradient-to-r from-blue-400/30 to-purple-300/30 w-64 h-64 rounded-full blur-[100px]"
+              initial={{ scale: 0, rotate: Math.random() * 360 }}
+              animate={{
+                scale: [0, 1, 0],
+                x: [0, Math.random() * 400 - 200, 0],
+                y: [0, Math.random() * 400 - 200, 0],
+              }}
+              transition={{
+                duration: 15 + Math.random() * 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border p-8"
+          className="relative w-full max-w-md bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl overflow-hidden border border-indigo-100"
         >
-          <h1 className="text-3xl font-bold text-center text-indigo-600 mb-6">Create Your Account</h1>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {["username", "email", "password", "confirmPassword"].map((field, index) => (
-              <div key={index} className="relative">
-                {field === "username" && <FiUser className="absolute left-3 top-3 text-indigo-500" />}
-                {field === "email" && <FiMail className="absolute left-3 top-3 text-indigo-500" />}
-                {field.includes("password") && <FiLock className="absolute left-3 top-3 text-indigo-500" />}
-                <input
-                  type={
-                    field.includes("password")
-                      ? field === "password"
-                        ? showPassword
-                          ? "text"
-                          : "password"
-                        : showConfirmPassword
-                        ? "text"
-                        : "password"
-                      : "text"
-                  }
-                  name={field}
-                  value={formData[field]}
-                  onChange={handleChange}
-                  placeholder={field.replace(/([A-Z])/g, " $1").trim()}
-                  className="w-full pl-10 pr-10 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none"
-                  required
-                />
-                {field.includes("password") && (
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3 text-indigo-500"
-                    onClick={() =>
-                      field === "password"
-                        ? setShowPassword(!showPassword)
-                        : setShowConfirmPassword(!showConfirmPassword)
-                    }
-                  >
-                    {field === "password" ? (showPassword ? <FiEyeOff /> : <FiEye />) : showConfirmPassword ? <FiEyeOff /> : <FiEye />}
-                  </button>
-                )}
-              </div>
-            ))}
-            <div className="flex items-center">
-              <input type="checkbox" id="terms" checked={termsChecked} onChange={handleTermsChange} className="mr-2" />
-              <label htmlFor="terms">I agree to the Terms & Conditions</label>
+          <div className="px-8 py-12">
+            <div className="mb-10 text-center">
+              <motion.h1
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent mb-4"
+              >
+                Join Our Community
+              </motion.h1>
+              <p className="text-gray-600 text-lg">Start your learning journey</p>
             </div>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="w-full bg-indigo-500 text-white py-3 rounded-xl shadow-lg hover:shadow-indigo-300/30">
-              Sign Up
-            </motion.button>
-            {message && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-3 bg-pink-50 text-pink-700 rounded-lg border border-pink-100">
-                <FiAlertCircle className="flex-shrink-0" />
-                <span>{message}</span>
-              </motion.div>
-            )}
-          </form>
-          <div className="my-6 text-center">or continue with</div>
-          <div className="flex justify-center">
-            <GoogleLogin onSuccess={() => navigate("/login")} onError={() => setMessage("Google login failed.")} />
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {["username", "email", "password", "confirmPassword"].map((field) => (
+                <div key={field} className="relative">
+                  <label className="block text-sm font-medium text-gray-600 mb-3 flex items-center">
+                    {field === "username" && <FiUser className="mr-2 text-indigo-500" />}
+                    {field === "email" && <FiMail className="mr-2 text-indigo-500" />}
+                    {field.includes("password") && <FiLock className="mr-2 text-indigo-500" />}
+                    {field.replace(/([A-Z])/g, " $1").trim()}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={
+                        field.includes("password")
+                          ? field === "password"
+                            ? showPassword ? "text" : "password"
+                            : showConfirmPassword ? "text" : "password"
+                          : "text"
+                      }
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-400 text-gray-900 transition-all"
+                      placeholder={`Enter your ${field.replace(/([A-Z])/g, " $1").toLowerCase().trim()}`}
+                      required
+                    />
+                    {field.includes("password") && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          field === "password"
+                            ? setShowPassword(!showPassword)
+                            : setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-4 top-4 text-indigo-500 hover:text-indigo-600 transition-colors"
+                      >
+                        {field === "password" 
+                          ? (showPassword ? <FiEyeOff /> : <FiEye />)
+                          : (showConfirmPassword ? <FiEyeOff /> : <FiEye />)}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex items-center text-sm">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={termsChecked}
+                  onChange={handleTermsChange}
+                  className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-400"
+                />
+                <label htmlFor="terms" className="ml-3">
+                  I agree to the{" "}
+                  <span className="text-indigo-600 font-medium hover:underline cursor-pointer">
+                    Terms & Conditions
+                  </span>
+                </label>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-300/30"
+              >
+                Create Account
+              </motion.button>
+
+              {message && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 p-3 bg-pink-50 text-pink-700 rounded-lg border border-pink-100"
+                >
+                  <FiAlertCircle className="flex-shrink-0" />
+                  <span>{message}</span>
+                </motion.div>
+              )}
+            </form>
+
+            <div className="my-8 flex items-center">
+              <div className="flex-1 border-t border-indigo-100" />
+              <span className="px-4 text-gray-500 text-sm">or continue with</span>
+              <div className="flex-1 border-t border-indigo-100" />
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={() => navigate("/login")}
+                onError={() => setMessage("Google Login Failed")}
+                theme="filled_white"
+                shape="pill"
+              />
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-gray-600">
+                Already have an account?{" "}
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-indigo-600 hover:text-indigo-500 font-medium underline underline-offset-4 hover:underline-offset-2 transition-all"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
           </div>
-          <p className="mt-6 text-center text-gray-600">
-            Already have an account? <button onClick={() => navigate("/login")} className="text-indigo-600 underline">Log in</button>
-          </p>
+
+          {/* Decorative corner elements */}
+          <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-indigo-100" />
+          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-indigo-100" />
         </motion.div>
+
+        {/* Floating helper icon */}
+        <div className="absolute bottom-8 right-8 animate-bounce">
+          <FiCheck className="text-indigo-400 w-8 h-8 opacity-50 hover:opacity-75 cursor-help transition-opacity" />
+        </div>
       </div>
     </GoogleOAuthProvider>
   );
