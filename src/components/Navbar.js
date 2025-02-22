@@ -186,7 +186,7 @@ export const Navbar = () => {
                 Profile
               </a>
               <a
-                href="/mycertifications"
+                href="/certificates"
                 className="block text-gray-700 hover:bg-gray-100 py-2"
               >
                 My Certifications
