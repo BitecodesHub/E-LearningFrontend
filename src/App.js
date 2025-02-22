@@ -26,6 +26,7 @@ import { VerifyOtp } from "./components/verifyotp";
 import { VerifyCredential } from "./components/VerifyCredential";
 
 import { LeaderBoard } from "./components/LeaderBoard";
+import { CertificateQr } from "./components/CertificateQr";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="/course/modules" element={<ModuleList />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
+          <Route path="/credential/:credentialId" element={<CertificateQr />} />
           <Route
             path="/course/:courseId/module/:moduleNumber"
             element={<CourseModuleDetail />}

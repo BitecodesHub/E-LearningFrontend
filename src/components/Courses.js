@@ -17,6 +17,7 @@ const iconMap = {
 
 export const Courses = () => {
   const [courses, setCourses] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -40,6 +41,10 @@ export const Courses = () => {
     }
   };
 
+  const filteredCourses = courses.filter(course =>
+    course.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
       <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -56,6 +61,8 @@ export const Courses = () => {
               <input
                 type="text"
                 placeholder="Search Courses"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-indigo-600 w-full"
               />
             </div>
@@ -74,8 +81,8 @@ export const Courses = () => {
                 <div className="w-1/2 h-4 bg-gray-300 rounded"></div>
               </div>
             ))
-          ) : courses.length > 0 ? (
-            courses.map((course, index) => {
+          ) : filteredCourses.length > 0 ? (
+            filteredCourses.map((course, index) => {
               const normalizedName = course.name.trim().toLowerCase();
               return (
                 <div
@@ -92,7 +99,7 @@ export const Courses = () => {
               );
             })
           ) : (
-            <p className="text-center text-gray-600">No courses available at the moment.</p>
+            <p className="text-center text-gray-600">No courses found.</p>
           )}
         </section>
       </main>

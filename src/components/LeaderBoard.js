@@ -34,38 +34,36 @@ export const LeaderBoard = () => {
   };
 
   return (
-    <div className="w-full min-h-screen p-8 bg-gradient-to-r from-blue-100 to-blue-200 flex flex-col items-center">
-      {/* Background Floating Animation */}
-      <motion.div 
-        className="absolute inset-0 pointer-events-none opacity-10" 
-        animate={{ y: [0, 20, 0] }} 
-        transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-      >
-        <div className="absolute top-16 left-20 w-32 h-32 bg-blue-300 rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-indigo-300 rounded-full blur-3xl opacity-20"></div>
-      </motion.div>
-
+    <div className="w-full min-h-screen p-6 sm:p-8 bg-gradient-to-r from-blue-100 to-blue-200 flex flex-col items-center">
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center mb-8"
+        className="text-center mb-6 sm:mb-8"
       >
-        <h1 className="text-5xl font-bold text-blue-800">🏆 Leaderboard</h1>
-        <p className="text-gray-700 mt-2">Track the top performers and celebrate their achievements!</p>
+        <h1 className="text-3xl sm:text-5xl font-bold text-blue-800">
+          🏆 Leaderboard
+        </h1>
+        <p className="text-gray-700 mt-1 sm:mt-2 text-sm sm:text-base">
+          Track the top performers and celebrate their achievements!
+        </p>
       </motion.div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.6 }} 
-        className="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full"
+      {/* Leaderboard Container */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl"
       >
         {loading && (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-300 h-6 w-full rounded-md"></div>
+              <div
+                key={i}
+                className="animate-pulse bg-gray-300 h-6 w-full rounded-md"
+              ></div>
             ))}
           </div>
         )}
@@ -74,61 +72,110 @@ export const LeaderBoard = () => {
           <p className="text-center text-red-500 font-semibold">{error}</p>
         )}
 
-        {/* Highlighted Top Performer Card */}
+        {/* Highlighted Top Performer */}
         {!loading && !error && leaderboard.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="p-6 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl shadow-md mb-6 text-center"
+            className="p-5 sm:p-6 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl shadow-md mb-4 sm:mb-6 text-center"
           >
-            <h2 className="text-2xl font-bold text-yellow-700">⭐ Top Performer</h2>
-            <p className="text-xl mt-2 font-semibold">{leaderboard[0]?.userName}</p>
-            <p className="text-gray-600">{leaderboard[0]?.courseName}</p>
-            <p className="text-2xl text-yellow-600 font-bold">{leaderboard[0]?.score}%</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-yellow-700">
+              ⭐ Top Performer
+            </h2>
+            <p className="text-lg sm:text-xl mt-2 font-semibold">
+              {leaderboard[0]?.userName}
+            </p>
+            <p className="text-gray-600 text-sm sm:text-base">
+              {leaderboard[0]?.courseName}
+            </p>
+            <p className="text-xl sm:text-2xl text-yellow-600 font-bold">
+              {leaderboard[0]?.score}%
+            </p>
           </motion.div>
         )}
 
-        {/* Leaderboard Table */}
-        {!loading && !error && leaderboard.length > 0 ? (
-          <motion.table
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-full border-collapse shadow-md rounded-lg overflow-hidden"
-          >
-            <thead>
-              <tr className="bg-blue-600 text-white">
-                <th className="border p-3 text-left">Rank</th>
-                <th className="border p-3 text-left">Student Name</th>
-                <th className="border p-3 text-left">Course</th>
-                <th className="border p-3 text-left">Score</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/* Leaderboard Table (Hidden on Mobile) */}
+        <div className="hidden sm:block">
+          {!loading && !error && leaderboard.length > 0 ? (
+            <motion.table
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-full border-collapse shadow-md rounded-lg overflow-hidden"
+            >
+              <thead>
+                <tr className="bg-blue-600 text-white">
+                  <th className="border p-3 text-left">Rank</th>
+                  <th className="border p-3 text-left">Student Name</th>
+                  <th className="border p-3 text-left">Course</th>
+                  <th className="border p-3 text-left">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((student, index) => (
+                  <motion.tr
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="hover:bg-gray-100 transition duration-300 ease-in-out"
+                  >
+                    <td className="border p-3 font-bold text-gray-700">
+                      {getMedal(index + 1)}
+                    </td>
+                    <td className="border p-3 font-semibold text-gray-800">
+                      {student.userName}
+                    </td>
+                    <td className="border p-3 text-gray-700">
+                      {student.courseName}
+                    </td>
+                    <td className="border p-3 text-blue-600 font-bold">
+                      {student.score}%
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </motion.table>
+          ) : (
+            !loading && (
+              <p className="text-center text-gray-600 mt-4">
+                No leaderboard data available.
+              </p>
+            )
+          )}
+        </div>
+
+        {/* Mobile-Friendly Card Layout */}
+        <div className="sm:hidden">
+          {!loading && !error && leaderboard.length > 0 ? (
+            <div className="flex flex-col space-y-4">
               {leaderboard.map((student, index) => (
-                <motion.tr
+                <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="hover:bg-gray-100 transition duration-300 ease-in-out"
+                  className="p-4 bg-gray-100 rounded-lg shadow-md flex flex-col items-center"
                 >
-                  <td className="border p-3 font-bold text-gray-700">{getMedal(index + 1)}</td>
-                  <td className="border p-3 font-semibold text-gray-800">
-                    {student.userName}
-                  </td>
-                  <td className="border p-3 text-gray-700">{student.courseName}</td>
-                  <td className="border p-3 text-blue-600 font-bold">{student.score}%</td>
-                </motion.tr>
+                  <p className="text-lg font-bold text-gray-800">
+                    {getMedal(index + 1)} {student.userName}
+                  </p>
+                  <p className="text-gray-700 text-sm">{student.courseName}</p>
+                  <p className="text-blue-600 text-lg font-bold">
+                    {student.score}%
+                  </p>
+                </motion.div>
               ))}
-            </tbody>
-          </motion.table>
-        ) : (
-          !loading && (
-            <p className="text-center text-gray-600 mt-4">No leaderboard data available.</p>
-          )
-        )}
+            </div>
+          ) : (
+            !loading && (
+              <p className="text-center text-gray-600 mt-4">
+                No leaderboard data available.
+              </p>
+            )
+          )}
+        </div>
       </motion.div>
     </div>
   );
