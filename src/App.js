@@ -27,6 +27,9 @@ import { VerifyCredential } from "./components/VerifyCredential";
 
 import { LeaderBoard } from "./components/LeaderBoard";
 import { CertificateQr } from "./components/CertificateQr";
+import { SocialMedia } from "./components/SocialMedia";
+import LegalTermsPage from "./components/LegalTermsPage";
+import AI from "./components/AI";
 
 function App() {
   return (
@@ -43,6 +46,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
           <Route path="/credential/:credentialId" element={<CertificateQr />} />
+          <Route path="/socialmedia" element={<SocialMedia />} />
+          <Route path="/terms" element={<LegalTermsPage />} /> 
           <Route
             path="/course/:courseId/module/:moduleNumber"
             element={<CourseModuleDetail />}
@@ -50,6 +55,7 @@ function App() {
           <Route path="/course/:courseId/modules" element={<CourseModule />} />
           <Route path="/leaderboard" element={<LeaderBoard/>} />
           <Route path="/credential-verify" element={<VerifyCredential />} />
+          <Route path="/ai" element={<AI />} />
           
 
           {/* Protect Routes */}

@@ -9,6 +9,8 @@ export const VerifyOtp = () => {
   const email = location.state?.email;
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
+  const [resendMessage, setResendMessage] = useState("");
+  const [isResending, setIsResending] = useState(false);
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -21,23 +23,53 @@ export const VerifyOtp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage(""); // Clear previous messages
+  
     try {
       const response = await fetch(`${apiUrl}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         setMessage(data.message);
         navigate("/login");
       } else {
-        const errorResponse = await response.json();
-        setMessage(errorResponse.message);
+        const errorResponse = await response.text(); // Read as plain text
+        setMessage(errorResponse || "Verification failed. Please try again.");
       }
     } catch (error) {
       setMessage("An error occurred. Please try again.");
+    }
+  };
+  
+  
+  const handleResendOtp = async () => {
+    if (!email) {
+      setResendMessage("Email is missing.");
+      return;
+    }
+    
+    setIsResending(true);
+    setResendMessage("");
+
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/resend-otp/${email}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setResendMessage("OTP sent successfully.");
+      } else {
+        const errorResponse = await response.text();
+        setResendMessage(errorResponse || "Failed to resend OTP.");
+      }
+    } catch (error) {
+      setResendMessage("An error occurred. Please try again.");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -93,10 +125,30 @@ export const VerifyOtp = () => {
         )}
 
         <div className="mt-4 text-center text-gray-600">
-          Didn't receive the code? <button className="text-indigo-600 underline">Resend OTP</button>
+          Didn't receive the code?{" "}
+          <button
+            onClick={handleResendOtp}
+            disabled={isResending}
+            className="text-indigo-600 underline"
+          >
+            {isResending ? "Resending..." : "Resend OTP"}
+          </button>
         </div>
+
+        {resendMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-sm text-indigo-600 mt-2"
+          >
+            {resendMessage}
+          </motion.div>
+        )}
+
         <div className="mt-2 text-center text-gray-600">
-          <button onClick={() => navigate("/register")} className="text-indigo-600 underline">Go back</button>
+          <button onClick={() => navigate("/register")} className="text-indigo-600 underline">
+            Go back
+          </button>
         </div>
       </motion.div>
     </div>

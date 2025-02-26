@@ -5,12 +5,14 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { QRCodeCanvas } from "qrcode.react";
 import { FiDownload } from "react-icons/fi";
+import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loader Icon
 
 export const ShowCertificates = () => {
   const [certificates, setCertificates] = useState([]);
   const [courses, setCourses] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingDownload, setLoadingDownload] = useState(false);
   const certificateRef = useRef(null);
 
   const { userFirstName, userId } = useAuth();
@@ -51,17 +53,42 @@ export const ShowCertificates = () => {
 
   const handleDownloadPDF = async () => {
     if (!certificateRef.current) return;
+    
+    setLoadingDownload(true);
 
-    const canvas = await html2canvas(certificateRef.current, {
-      backgroundColor: "#ffffff", // Fixes grey background issue
-      scale: 3, // Higher resolution for better clarity
-      useCORS: true, // Avoids cross-origin issues for QR Code
-    });
+    setTimeout(async () => {
+      try {
+        const canvas = await html2canvas(certificateRef.current, {
+          backgroundColor: "#ffffff",
+          scale: window.innerWidth < 768 ? 2 : 3, // Increased scale for better quality on mobile
+          useCORS: true,
+        });
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("landscape", "mm", "a4");
-    pdf.addImage(imgData, "PNG", 10, 10, 280, 190);
-    pdf.save("certificate.pdf");
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("landscape", "mm", "a4");
+        
+        // Get PDF dimensions
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calculate aspect ratio to maintain proportions
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight) * 0.9; // 90% of available space
+        
+        // Calculate centered position
+        const x = (pdfWidth - canvasWidth * ratio) / 2;
+        const y = (pdfHeight - canvasHeight * ratio) / 2;
+        
+        // Add image with calculated dimensions
+        pdf.addImage(imgData, "PNG", x, y, canvasWidth * ratio, canvasHeight * ratio);
+        pdf.save("certificate.pdf");
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+      } finally {
+        setLoadingDownload(false);
+      }
+    }, 500);
   };
 
   return (
@@ -98,18 +125,18 @@ export const ShowCertificates = () => {
         {selectedCertificate && (
           <motion.div
             ref={certificateRef}
-            className="border-8 border-blue-200 p-10 mt-10 bg-white shadow-lg rounded-xl relative"
-            style={{ backgroundColor: "white" }} // Ensures proper background
+            className="border-8 border-blue-200 p-10 mt-10 bg-white shadow-lg rounded-xl relative certificate-container"
+            style={{ backgroundColor: "white" }}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
             <div className="text-center">
-              <h1 className="text-4xl font-serif font-extrabold text-gray-900 mb-2">
+              <h1 className="text-4xl font-serif font-extrabold text-gray-900 mb-2 certificate-title">
                 Certificate of Completion
               </h1>
               <p className="text-lg text-gray-500 italic">This is to certify that</p>
-              <h2 className="text-3xl font-bold text-blue-800 mt-2">{userFirstName}</h2>
+              <h2 className="text-3xl font-bold text-blue-800 mt-2 certificate-name">{userFirstName}</h2>
               <p className="text-lg text-gray-600 mt-2">has successfully completed the course</p>
               <h3 className="text-2xl font-semibold mt-2 text-gray-700">
                 {getCourseName(selectedCertificate.courseId)}
@@ -131,7 +158,7 @@ export const ShowCertificates = () => {
               <div className="mt-6 flex justify-center">
                 <div className="bg-white p-4 rounded-xl shadow-md border border-gray-300">
                   <QRCodeCanvas
-                   value={`elearning.bitecodes.com/credential/${selectedCertificate.credentialId}`}
+                    value={`elearning.bitecodes.com/credential/${selectedCertificate.credentialId}`}
                     size={140}
                     bgColor="#ffffff"
                     fgColor="#1F2937"
@@ -150,9 +177,14 @@ export const ShowCertificates = () => {
             <button
               onClick={handleDownloadPDF}
               className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+              disabled={loadingDownload}
             >
-              <FiDownload className="text-xl" />
-              Download PDF
+              {loadingDownload ? (
+                <AiOutlineLoading3Quarters className="animate-spin text-xl" />
+              ) : (
+                <FiDownload className="text-xl" />
+              )}
+              {loadingDownload ? "Generating PDF..." : "Download PDF"}
             </button>
           </motion.div>
         )}
@@ -160,3 +192,4 @@ export const ShowCertificates = () => {
     </div>
   );
 };
+

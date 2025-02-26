@@ -209,15 +209,19 @@ export const UserAttempts = () => {
                         <CheckBadgeIcon className="w-5 h-5" />
                         Certificate Issued
                       </div>
-                    ) : (
+                    ) : attempt.score >= 70 ? (
                       <motion.button
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handlePayment(attempt)}
                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all"
                       >
-                        Get Certificate - $49
+                        Get Certificate - ₹49
                       </motion.button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-rose-100/80 text-rose-700 py-2.5 rounded-xl text-sm">
+                        <span>Better luck next time!</span>
+                      </div>
                     )}
                   </div>
                 </div>
