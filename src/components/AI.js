@@ -54,7 +54,7 @@ const LearnWithoutLimitsAI = () => {
     controllerRef.current = new AbortController();
     
     try {
-      const response = await fetch("https://ai.learnwithoutlimits.com/api/generate", {
+      const response = await fetch("https://ai.bitecodes.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "stable-code:3b", prompt: message, stream: true }),
