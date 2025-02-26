@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react"; // For Icons
+import { Menu, X, ChevronDown, User, Award, Clock, LogOut } from "lucide-react";
 
 export const Navbar = () => {
   const { logout, isAuthenticated, userFirstName } = useAuth();
@@ -9,6 +9,7 @@ export const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -33,6 +34,13 @@ export const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target) &&
+        event.target.id !== "mobile-menu-button"
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -40,171 +48,195 @@ export const Navbar = () => {
     };
   }, []);
 
+  // Navigation links array for DRY code
+  const navLinks = [
+    { title: "Courses", path: "/courses" },
+    { title: "LeaderBoard", path: "/leaderboard" },
+    { title: "Credential", path: "/credential-verify" },
+    { title: "About", path: "/about" },
+    { title: "Contact", path: "/contact" },
+  ];
+
   return (
-    <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200 shadow-md">
+    <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 shadow-lg">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            <a href="/" className="hover:text-indigo-600 transition-all">
-              Learn Without Limits
-            </a>
-          </h1>
-
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex space-x-8">
-            <a href="/courses" className="hover:text-indigo-600 transition-all">
-              Courses
-            </a>
-            <a
-              href="/leaderboard"
-              className="hover:text-indigo-600 transition-all"
-            >
-              LeaderBoard
-            </a>
-            <a
-              href="/credential-verify"
-              className="hover:text-indigo-600 transition-all"
-            >
-              Credential
-            </a>
-            <a href="/about" className="hover:text-indigo-600 transition-all">
-              About
-            </a>
-            <a href="/contact" className="hover:text-indigo-600 transition-all">
-              Contact
-            </a>
+          <div className="flex-shrink-0">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+              <a
+                href="/"
+                className="hover:opacity-80 transition-all duration-300 flex items-center"
+              >
+                Learn Without Limits
+              </a>
+            </h1>
           </div>
 
-          {/* Authentication Section */}
-          {isAuthenticated ? (
-            <div className="relative hidden md:block" ref={dropdownRef}>
-              <button
-                onClick={toggleDropdown}
-                className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-all duration-200"
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.path}
+                href={link.path}
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 transition-all duration-200"
               >
-                <span className="text-lg font-semibold">
-                  {userFirstName || "User"}
-                </span>
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+                {link.title}
+              </a>
+            ))}
+          </div>
 
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-                  <a
-                    href="/profile"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
-                  >
-                    Profile
-                  </a>
-                  <a
-                    href="/certificates"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
-                  >
-                    My Certifications
-                  </a>
-                  <a
-                    href="/attempts"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 text-center"
-                  >
-                  Attempts
-                  </a>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-center px-4 py-2 text-red-600 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={handleLoginSignup}
-              className="hidden md:block px-6 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Login / Signup
-            </button>
-          )}
+          {/* Authentication Section for Desktop */}
+          <div className="hidden md:flex items-center">
+            {isAuthenticated ? (
+              <div className="relative ml-3" ref={dropdownRef}>
+                <button
+                  onClick={toggleDropdown}
+                  className="flex items-center px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all duration-200"
+                >
+                  <span className="font-medium mr-1">
+                    {userFirstName || "User"}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 animate-fadeIn">
+                    <div className="py-2">
+                      <a
+                        href="/profile"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      >
+                        <User size={18} className="mr-3 text-indigo-500" />
+                        <span>Profile</span>
+                      </a>
+                      <a
+                        href="/certificates"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      >
+                        <Award size={18} className="mr-3 text-indigo-500" />
+                        <span>My Certifications</span>
+                      </a>
+                      <a
+                        href="/attempts"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      >
+                        <Clock size={18} className="mr-3 text-indigo-500" />
+                        <span>Attempts</span>
+                      </a>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-all"
+                      >
+                        <LogOut size={18} className="mr-3" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={handleLoginSignup}
+                className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+              >
+                Login / Signup
+              </button>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
+            id="mobile-menu-button"
             onClick={toggleMobileMenu}
-            className="md:hidden p-2 focus:outline-none"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-100 focus:outline-none transition-all duration-200"
+            aria-expanded={isMobileMenuOpen}
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            <span className="sr-only">Open main menu</span>
+            {isMobileMenuOpen ? (
+              <X className="block h-6 w-6" aria-hidden="true" />
+            ) : (
+              <Menu className="block h-6 w-6" aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden transition-all duration-300 ${
-          isMobileMenuOpen ? "block" : "hidden"
-        } bg-white border-t border-gray-200 shadow-md`}
+        ref={mobileMenuRef}
+        className={`md:hidden transition-all duration-300 ease-in-out transform ${
+          isMobileMenuOpen
+            ? "opacity-100 translate-y-0 max-h-screen"
+            : "opacity-0 -translate-y-4 max-h-0 overflow-hidden"
+        } bg-white border-t border-gray-100 shadow-inner`}
       >
-        <div className="flex flex-col space-y-4 py-4 text-center">
-          <a href="/courses" className="hover:text-indigo-600 transition-all">
-            Courses
-          </a>
-          <a
-            href="/leaderboard"
-            className="hover:text-indigo-600 transition-all"
-          >
-            LeaderBoard
-          </a>
-          <a
-            href="/credential-verify"
-            className="hover:text-indigo-600 transition-all"
-          >
-            Credential
-          </a>
-          <a href="/about" className="hover:text-indigo-600 transition-all">
-            About
-          </a>
-          <a href="/contact" className="hover:text-indigo-600 transition-all">
-            Contact
-          </a>
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {navLinks.map((link) => (
+            <a
+              key={link.path}
+              href={link.path}
+              className="block px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+            >
+              {link.title}
+            </a>
+          ))}
+        </div>
 
+        {/* Mobile Authentication Menu */}
+        <div className="pt-4 pb-3 border-t border-gray-200">
           {isAuthenticated ? (
-            <>
+            <div className="px-2 space-y-1">
+              <div className="px-4 py-2 text-center">
+                <span className="text-lg font-medium text-indigo-600">
+                  Hi, {userFirstName || "User"}!
+                </span>
+              </div>
               <a
                 href="/profile"
-                className="block text-gray-700 hover:bg-gray-100 py-2"
+                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               >
-                Profile
+                <User size={18} className="mr-3 text-indigo-500" />
+                <span>Profile</span>
               </a>
               <a
                 href="/certificates"
-                className="block text-gray-700 hover:bg-gray-100 py-2"
+                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               >
-                My Certifications
+                <Award size={18} className="mr-3 text-indigo-500" />
+                <span>My Certifications</span>
+              </a>
+              <a
+                href="/attempts"
+                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              >
+                <Clock size={18} className="mr-3 text-indigo-500" />
+                <span>Attempts</span>
               </a>
               <button
                 onClick={handleLogout}
-                className="w-full px-4 py-2 text-red-600 hover:bg-gray-100"
+                className="flex items-center w-full mt-4 px-4 py-3 rounded-md text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"
               >
-                Logout
+                <LogOut size={18} className="mr-3" />
+                <span>Logout</span>
               </button>
-            </>
+            </div>
           ) : (
-            <button
-              onClick={handleLoginSignup}
-              className="px-6 py-2 mx-auto rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Login / Signup
-            </button>
+            <div className="px-5 py-4 flex justify-center">
+              <button
+                onClick={handleLoginSignup}
+                className="w-full px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg font-medium"
+              >
+                Login / Signup
+              </button>
+            </div>
           )}
         </div>
       </div>
