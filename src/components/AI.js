@@ -57,7 +57,7 @@ const LearnWithoutLimitsAI = () => {
       const response = await fetch("https://ai.learnwithoutlimits.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "educator-pro", prompt: message, stream: true }),
+        body: JSON.stringify({ model: "stable-code:3b", prompt: message, stream: true }),
         signal: controllerRef.current.signal,
       });
     
