@@ -61,17 +61,17 @@ export const Navbar = () => {
     <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 shadow-lg">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
-              <a
-                href="/"
-                className="hover:opacity-80 transition-all duration-300 flex items-center"
-              >
-                Learn Without Limits
-              </a>
-            </h1>
-          </div>
+         {/* Logo */}
+        <div className="flex-shrink-0">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+            <a
+              href="/"
+              className="hover:scale-105 transition-transform duration-300 flex items-center"
+            >
+              Learn Without Limits
+            </a>
+          </h1>
+        </div>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
