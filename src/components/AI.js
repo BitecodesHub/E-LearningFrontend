@@ -38,38 +38,26 @@ const LearnWithoutLimitsAI = () => {
   const toggleMinimize = () => setMinimized((prev) => !prev);
 
   const appendMessage = (text, className) => {
-    const newMessage = { text, className, id: Date.now() };
-    chatHistoryRef.current.push(newMessage);
+    chatHistoryRef.current.push({ text, className, id: Date.now() });
     setChatMessages([...chatHistoryRef.current.slice(-50)]);
-    return newMessage;
   };
 
   const generate = async () => {
     if (!message.trim()) return;
     
     setIsStopped(false);
-    const userMessage = message;
     setMessage("");
     setLoading(true);
+    appendMessage(message, "user-message");
+    appendMessage("", "ai-message");
     
-    // Add user message
-    appendMessage(userMessage, "user-message");
-    
-    // Prepare for AI response
-    const aiMessageRef = appendMessage("", "ai-message");
-    
-    // Create a new AbortController for this request
     controllerRef.current = new AbortController();
     
     try {
       const response = await fetch("https://ai.bitecodes.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          model: "stable-code:3b", 
-          prompt: userMessage, 
-          stream: true 
-        }),
+        body: JSON.stringify({ model: "stable-code:3b", prompt: message, stream: true }),
         signal: controllerRef.current.signal,
       });
     
@@ -78,16 +66,11 @@ const LearnWithoutLimitsAI = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullText = "";
+      let tempText = "";
     
       while (true) {
-        // Check if generation was stopped
-        if (isStopped) {
-          break;
-        }
-    
         const { done, value } = await reader.read();
-        
-        if (done) break;
+        if (done || isStopped) break;
     
         const chunk = decoder.decode(value, { stream: true });
         chunk.split("\n").forEach((line) => {
@@ -95,50 +78,23 @@ const LearnWithoutLimitsAI = () => {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
               if (json.response) {
-                fullText += json.response;
-                
-                // Update message in real-time
-                setChatMessages((prev) => {
-                  const updatedMessages = [...prev];
-                  const messageIndex = updatedMessages.findIndex(m => m.id === aiMessageRef.id);
-                  if (messageIndex !== -1) {
-                    updatedMessages[messageIndex].text = fullText;
-                  }
-                  return updatedMessages;
-                });
+                tempText += json.response;
               }
             } catch (e) {
               console.error("Error parsing JSON:", e);
             }
           }
         });
-      }
     
-      // If not stopped, finalize the message
-      if (!isStopped) {
         setChatMessages((prev) => {
           const updatedMessages = [...prev];
-          const messageIndex = updatedMessages.findIndex(m => m.id === aiMessageRef.id);
-          if (messageIndex !== -1) {
-            updatedMessages[messageIndex].text = fullText;
-          }
+          updatedMessages[updatedMessages.length - 1].text = tempText;
           return updatedMessages;
         });
       }
-    
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Generation stopped by user.");
-        // Optionally, you can add a partial response or a stop message
-        setChatMessages((prev) => {
-          const updatedMessages = [...prev];
-          const messageIndex = updatedMessages.findIndex(m => m.id === aiMessageRef.id);
-          if (messageIndex !== -1) {
-            updatedMessages[messageIndex].text = "Generation stopped. Partial response: " + 
-              (updatedMessages[messageIndex].text || "");
-          }
-          return updatedMessages;
-        });
       } else {
         console.error(error);
         appendMessage("⚠️ Oops! We encountered an issue while generating your response. Please try again.", "ai-message");
@@ -174,6 +130,7 @@ const LearnWithoutLimitsAI = () => {
     animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
     exit: { opacity: 0, y: -20, transition: { duration: 0.3 } }
   };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}
       className={`min-h-screen flex justify-center items-center p-4 transition-colors duration-500 ${isDarkMode ? "bg-gradient-to-br from-gray-900 to-purple-900" : "bg-gradient-to-br from-blue-50 to-indigo-100"}`}>
