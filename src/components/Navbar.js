@@ -14,10 +14,20 @@ export const Navbar = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+    window.scrollTo(0, 0); // Scroll to top
+    setIsMobileMenuOpen(false); // Close mobile menu on logout
   };
 
   const handleLoginSignup = () => {
     navigate("/login");
+    window.scrollTo(0, 0); // Scroll to top
+    setIsMobileMenuOpen(false); // Close mobile menu on login/signup
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    window.scrollTo(0, 0); // Scroll to top
+    setIsMobileMenuOpen(false); // Close mobile menu on navigation
   };
 
   const toggleDropdown = () => {
@@ -61,29 +71,34 @@ export const Navbar = () => {
     <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 shadow-lg">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-      {/* Logo */}
-      <div className="flex-shrink-0">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
-          <a
-            href="/"
-            className="hover:text-indigo-400 transition-colors duration-300 flex items-center"
-          >
-            Learn Without Limits
-          </a>
-        </h1>
-      </div>
-
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+              <button
+                onClick={() => {
+                  navigate("/");
+                  window.scrollTo(0, 0);
+                }}
+                className="hover:text-indigo-400 transition-colors duration-300 flex items-center"
+              >
+                Learn Without Limits
+              </button>
+            </h1>
+          </div>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.path}
-                href={link.path}
+                onClick={() => {
+                  navigate(link.path);
+                  window.scrollTo(0, 0);
+                }}
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 transition-all duration-200"
               >
                 {link.title}
-              </a>
+              </button>
             ))}
           </div>
 
@@ -110,27 +125,39 @@ export const Navbar = () => {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 animate-fadeIn">
                     <div className="py-2">
-                      <a
-                        href="/profile"
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      <button
+                        onClick={() => {
+                          navigate("/profile");
+                          window.scrollTo(0, 0);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
                       >
                         <User size={18} className="mr-3 text-indigo-500" />
                         <span>Profile</span>
-                      </a>
-                      <a
-                        href="/certificates"
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/certificates");
+                          window.scrollTo(0, 0);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
                       >
                         <Award size={18} className="mr-3 text-indigo-500" />
                         <span>My Certifications</span>
-                      </a>
-                      <a
-                        href="/attempts"
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/attempts");
+                          window.scrollTo(0, 0);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-all"
                       >
                         <Clock size={18} className="mr-3 text-indigo-500" />
                         <span>Attempts</span>
-                      </a>
+                      </button>
                       <div className="border-t border-gray-100 my-1"></div>
                       <button
                         onClick={handleLogout}
@@ -181,13 +208,13 @@ export const Navbar = () => {
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           {navLinks.map((link) => (
-            <a
+            <button
               key={link.path}
-              href={link.path}
-              className="block px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              onClick={() => handleNavigation(link.path)}
+              className="w-full text-left block px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
             >
               {link.title}
-            </a>
+            </button>
           ))}
         </div>
 
@@ -200,27 +227,27 @@ export const Navbar = () => {
                   Hi, {userFirstName || "User"}!
                 </span>
               </div>
-              <a
-                href="/profile"
-                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              <button
+                onClick={() => handleNavigation("/profile")}
+                className="w-full text-left flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               >
                 <User size={18} className="mr-3 text-indigo-500" />
                 <span>Profile</span>
-              </a>
-              <a
-                href="/certificates"
-                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              </button>
+              <button
+                onClick={() => handleNavigation("/certificates")}
+                className="w-full text-left flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               >
                 <Award size={18} className="mr-3 text-indigo-500" />
                 <span>My Certifications</span>
-              </a>
-              <a
-                href="/attempts"
-                className="flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              </button>
+              <button
+                onClick={() => handleNavigation("/attempts")}
+                className="w-full text-left flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               >
                 <Clock size={18} className="mr-3 text-indigo-500" />
                 <span>Attempts</span>
-              </a>
+              </button>
               <button
                 onClick={handleLogout}
                 className="flex items-center w-full mt-4 px-4 py-3 rounded-md text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"

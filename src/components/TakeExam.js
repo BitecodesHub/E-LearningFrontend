@@ -8,13 +8,12 @@ export const TakeExam = () => {
   
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(40 * 60); // 40 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(40 * 60);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Format API URL once
   const apiUrl = useMemo(() => 
     process.env.REACT_APP_ENV === "production"
       ? process.env.REACT_APP_LIVE_API
@@ -22,7 +21,6 @@ export const TakeExam = () => {
     []
   );
 
-  // Fetch questions
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -48,7 +46,6 @@ export const TakeExam = () => {
     }
   }, [courseId, apiUrl]);
 
-  // Timer effect
   useEffect(() => {
     if (timeLeft <= 0) {
       submitExam();
@@ -59,31 +56,26 @@ export const TakeExam = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Format timer display
   const formattedTime = useMemo(() => {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = String(timeLeft % 60).padStart(2, "0");
     return `${minutes}:${seconds}`;
   }, [timeLeft]);
 
-  // Progress calculation
   const progress = useMemo(() => {
     if (!questions.length) return 0;
     return Object.keys(answers).length / questions.length * 100;
   }, [answers, questions]);
 
-  // Check if current question is answered
   const isCurrentQuestionAnswered = useMemo(() => {
     if (!questions.length) return false;
     return !!answers[questions[currentQuestionIndex]?.id];
   }, [answers, questions, currentQuestionIndex]);
 
-  // Handle answer selection
   const handleAnswerChange = useCallback((questionId, option) => {
     setAnswers(prev => ({ ...prev, [questionId]: option }));
   }, []);
 
-  // Navigation handlers
   const nextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -96,24 +88,29 @@ export const TakeExam = () => {
     }
   }, [currentQuestionIndex]);
 
-  // Go to specific question
   const goToQuestion = useCallback((index) => {
     if (index >= 0 && index < questions.length) {
       setCurrentQuestionIndex(index);
     }
   }, [questions.length]);
 
-  // Submit exam
+  // Modified submit function with 'E' default
   const submitExam = useCallback(async () => {
     if (submitting) return;
     
     try {
       setSubmitting(true);
       
+      // Create completed answers with 'E' for unanswered questions
+      const completedAnswers = questions.reduce((acc, question) => {
+        acc[question.id] = answers[question.id] || 'E';
+        return acc;
+      }, {});
+
       const response = await fetch(`${apiUrl}/api/exams/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, courseId, answers }),
+        body: JSON.stringify({ userId, courseId, answers: completedAnswers }),
       });
       
       if (!response.ok) {
@@ -127,7 +124,56 @@ export const TakeExam = () => {
       setError("Failed to submit exam. Please try again.");
       setSubmitting(false);
     }
-  }, [apiUrl, userId, courseId, answers, navigate, submitting]);
+  }, [apiUrl, userId, courseId, answers, navigate, submitting, questions]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (loading || submitting) return;
+      
+      if (e.key === "ArrowLeft") {
+        prevQuestion();
+      } else if (e.key === "ArrowRight") {
+        nextQuestion();
+      } else if (e.key >= "1" && e.key <= "4" && questions[currentQuestionIndex]) {
+        const optionMap = { "1": "A", "2": "B", "3": "C", "4": "D" };
+        handleAnswerChange(questions[currentQuestionIndex].id, optionMap[e.key]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [loading, submitting, prevQuestion, nextQuestion, handleAnswerChange, questions, currentQuestionIndex]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (Object.keys(answers).length > 0 && !submitting) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [answers, submitting]);
+
+  const currentQuestion = useMemo(() => 
+    questions[currentQuestionIndex] || null,
+    [questions, currentQuestionIndex]
+  );
+  // Timer effect
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      submitExam();
+      return;
+    }
+    
+    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  // Format timer display
+  
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -164,11 +210,7 @@ export const TakeExam = () => {
   }, [answers, submitting]);
 
   // Current question
-  const currentQuestion = useMemo(() => 
-    questions[currentQuestionIndex] || null,
-    [questions, currentQuestionIndex]
-  );
-
+ 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex flex-col">
       <div className="flex-grow w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 my-6">
