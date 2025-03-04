@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CourseModuleDetail = () => {
   const { courseId, moduleNumber } = useParams();
@@ -17,6 +18,10 @@ const CourseModuleDetail = () => {
       : process.env.REACT_APP_LOCAL_API;
 
   useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to top on module change
+  }, [moduleNumber]);
+
+  useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
@@ -27,7 +32,6 @@ const CourseModuleDetail = () => {
         );
         setModule(response.data);
 
-        // Fetch total number of modules
         const totalResponse = await axios.get(
           `${apiUrl}/module/course/${courseId}`
         );
@@ -56,88 +60,155 @@ const CourseModuleDetail = () => {
     navigate(`/course/${courseId}/exam`);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 px-4 sm:px-6 lg:px-8 py-6">
-      <div className="max-w-4xl mx-auto w-full bg-white p-5 sm:p-8 rounded-2xl shadow-md sm:shadow-lg">
-        <button
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.button
           onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800 transition-all text-sm sm:text-base"
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-8 group"
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 100 }}
         >
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> Back to Modules
-        </button>
+          <ArrowLeft className="w-6 h-6 mr-2 transition-transform group-hover:-translate-x-1" />
+          <span className="font-medium text-xl">Back to Modules</span>
+        </motion.button>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="w-14 h-14 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div className="mt-4 sm:mt-6 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-indigo-700 leading-tight">
-              Module {module.moduleNumber}: {module.moduleTitle}
-            </h2>
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-8"
+            >
+              <div className="h-12 bg-gray-200 animate-pulse rounded-xl w-3/4 mx-auto" />
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-2xl" />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 sm:p-12 border border-white/20"
+            >
+              <motion.h2
+                variants={itemVariants}
+                className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center mb-12"
+              >
+                Module {module.moduleNumber}<span className="text-gray-400 mx-3">|</span>
+                <span className="font-extrabold">{module.moduleTitle}</span>
+              </motion.h2>
 
-            {/* Display Image & Content */}
-            {module.imageUrls?.length > 0 ? (
-              module.imageUrls.map((url, index) => (
-                <div key={index} className="mt-6 flex flex-col items-center">
-                  <img
-                    src={url}
-                    alt={`Module Image ${index + 1}`}
-                    className="w-full max-w-lg sm:max-w-3xl rounded-lg shadow-lg"
-                  />
-                  {module.content[index] && (
-                    <p className="text-base sm:text-lg mt-4 text-gray-700 px-3 sm:px-0">
-                      {module.content[index]}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="mt-6">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  📖 Content:
-                </h3>
-                <ul className="list-disc text-gray-700 mt-2 space-y-2 text-left mx-auto max-w-lg sm:max-w-2xl px-4 sm:px-0">
-                  {module.content?.map((item, index) => (
-                    <li key={index} className="hover:text-blue-600 text-sm sm:text-base">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-16">
+                {module.imageUrls?.map((url, index) => (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    className="relative"
+                  >
+                    <img
+                      src={url}
+                      alt={`Module Image ${index + 1}`}
+                      className="w-4/5 mx-auto rounded-2xl shadow-lg border-8 border-white/10"
+                    />
+                    {module.content[index] && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-xl text-gray-600 mt-6 leading-relaxed max-w-3xl mx-auto px-4 sm:px-0"
+                      >
+                        {module.content[index]}
+                      </motion.p>
+                    )}
+                  </motion.div>
+                ))}
+
+                {!module.imageUrls?.length && (
+                  <motion.ul
+                    variants={containerVariants}
+                    className="space-y-6 max-w-3xl mx-auto"
+                  >
+                    {module.content?.map((item, index) => (
+                      <motion.li
+                        key={index}
+                        variants={itemVariants}
+                        className="p-6 bg-indigo-50/50 rounded-xl border border-indigo-100/50"
+                      >
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white">
+                              {index + 1}
+                            </div>
+                          </div>
+                          <p className="ml-4 text-gray-700 text-xl leading-relaxed">
+                            {item}
+                          </p>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                )}
               </div>
-            )}
 
-            {/* Navigation & Exam Button */}
-            <div className="mt-8 flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-4">
-              {parseInt(moduleNumber) > 1 && (
-                <button
-                  onClick={() => handleNavigation("prev")}
-                  className="flex items-center bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 sm:px-4 py-2 rounded-lg transition-all shadow-sm"
-                >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Previous
-                </button>
-              )}
+              <motion.div
+                variants={itemVariants}
+                className="mt-16 flex flex-col sm:flex-row justify-center gap-6"
+              >
+                {parseInt(moduleNumber) > 1 && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleNavigation("prev")}
+                    className="flex items-center bg-white text-indigo-600 px-6 py-3 rounded-xl shadow-lg border-2 border-indigo-100 text-xl"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    Previous Module
+                  </motion.button>
+                )}
 
-              {parseInt(moduleNumber) < totalModules ? (
-                <button
-                  onClick={() => handleNavigation("next")}
-                  className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-all shadow-sm"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
-                </button>
-              ) : (
-                <button
-                  onClick={handleTakeExam}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg transition-all shadow-md text-lg"
-                >
-                  🎯 Take Exam
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+                {parseInt(moduleNumber) < totalModules ? (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleNavigation("next")}
+                    className="flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-xl shadow-lg text-xl"
+                  >
+                    Next Module
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleTakeExam}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-xl shadow-lg text-xl font-semibold"
+                  >
+                    🚀 Take Final Exam
+                  </motion.button>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

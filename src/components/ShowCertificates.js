@@ -103,7 +103,7 @@ export const ShowCertificates = () => {
 
   const getCourseCategory = (courseId) => {
     const course = courses.find((c) => c.id === courseId);
-    return course && course.category ? course.category : "other";
+    return course && course.category ? course.category : "Coding";
   };
 
   const getCourseIcon = (courseId) => {
