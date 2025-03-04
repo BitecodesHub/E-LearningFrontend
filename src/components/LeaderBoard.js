@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const LeaderBoard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
+  const [filterValue, setFilterValue] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -14,6 +17,7 @@ export const LeaderBoard = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`${apiUrl}/api/certificates/leaderboard`);
         if (!response.ok) {
           throw new Error("Failed to fetch leaderboard");
@@ -33,146 +37,514 @@ export const LeaderBoard = () => {
     return rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
   };
 
+  const getScoreColor = (score) => {
+    if (score >= 90) return "text-green-600";
+    if (score >= 80) return "text-blue-600";
+    if (score >= 70) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const sortLeaderboard = useCallback((key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  }, [sortConfig]);
+
+  const filteredLeaderboard = useCallback(() => {
+    let filtered = [...leaderboard];
+    
+    // Filter by search term
+    if (filterValue) {
+      filtered = filtered.filter(
+        (student) =>
+          student.userName.toLowerCase().includes(filterValue.toLowerCase()) ||
+          student.courseName.toLowerCase().includes(filterValue.toLowerCase())
+      );
+    }
+    
+    // Filter by tab
+    if (activeTab === "top10") {
+      filtered = filtered.slice(0, 10);
+    } else if (activeTab === "exceptional") {
+      filtered = filtered.filter(student => student.score >= 90);
+    }
+    
+    // Sort if needed
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [leaderboard, sortConfig, filterValue, activeTab]);
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "ascending" ? " ↑" : " ↓";
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
   return (
-    <div className="w-full min-h-screen p-6 sm:p-8 bg-gradient-to-r from-blue-100 to-blue-200 flex flex-col items-center">
+    <div className="w-full min-h-screen p-4 sm:p-8 bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 flex flex-col items-center">
       {/* Hero Section */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-6 sm:mb-8"
+        transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+        className="text-center mb-8"
       >
-        <h1 className="text-3xl sm:text-5xl font-bold text-blue-800">
+        <h1 className="text-4xl sm:text-6xl font-bold bg-gradient-to-r from-blue-800 to-indigo-700 bg-clip-text text-transparent">
           🏆 Leaderboard
         </h1>
-        <p className="text-gray-700 mt-1 sm:mt-2 text-sm sm:text-base">
-          Track the top performers and celebrate their achievements!
+        <p className="text-gray-700 mt-2 text-sm sm:text-base max-w-xl">
+          Track the top performers and celebrate their achievements in our learning community!
         </p>
+      </motion.div>
+
+      {/* Controls Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="w-full max-w-3xl flex flex-col sm:flex-row justify-between items-center mb-4 gap-4"
+      >
+        {/* Tabs */}
+        <div className="flex space-x-2 bg-white rounded-full p-1 shadow-md">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 rounded-full text-sm ${
+              activeTab === "all"
+                ? "bg-blue-600 text-white font-medium"
+                : "text-gray-700 hover:bg-gray-100"
+            } transition-all duration-300`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setActiveTab("top10")}
+            className={`px-4 py-2 rounded-full text-sm ${
+              activeTab === "top10"
+                ? "bg-blue-600 text-white font-medium"
+                : "text-gray-700 hover:bg-gray-100"
+            } transition-all duration-300`}
+          >
+            Top 10
+          </button>
+          <button
+            onClick={() => setActiveTab("exceptional")}
+            className={`px-4 py-2 rounded-full text-sm ${
+              activeTab === "exceptional"
+                ? "bg-blue-600 text-white font-medium"
+                : "text-gray-700 hover:bg-gray-100"
+            } transition-all duration-300`}
+          >
+            Exceptional (90%+)
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search students or courses..."
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="pl-10 pr-4 py-2 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full sm:w-64"
+          />
+          <svg
+            className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
       </motion.div>
 
       {/* Leaderboard Container */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.8, delay: 0.3 }}
         className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl"
       >
         {loading && (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <div className="animate-pulse bg-gray-200 h-24 w-full rounded-lg mb-6"></div>
             {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse bg-gray-300 h-6 w-full rounded-md"
-              ></div>
+              <div key={i} className="animate-pulse bg-gray-200 h-16 w-full rounded-lg"></div>
             ))}
           </div>
         )}
 
         {error && (
-          <p className="text-center text-red-500 font-semibold">{error}</p>
-        )}
-
-        {/* Highlighted Top Performer */}
-        {!loading && !error && leaderboard.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="p-5 sm:p-6 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl shadow-md mb-4 sm:mb-6 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center p-6 rounded-lg bg-red-50 border border-red-200"
           >
-            <h2 className="text-xl sm:text-2xl font-bold text-yellow-700">
-              ⭐ Top Performer
-            </h2>
-            <p className="text-lg sm:text-xl mt-2 font-semibold">
-              {leaderboard[0]?.userName}
-            </p>
-            <p className="text-gray-600 text-sm sm:text-base">
-              {leaderboard[0]?.courseName}
-            </p>
-            <p className="text-xl sm:text-2xl text-yellow-600 font-bold">
-              {leaderboard[0]?.score}%
-            </p>
+            <svg
+              className="w-12 h-12 text-red-400 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Leaderboard</h3>
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
           </motion.div>
         )}
 
+       {/* Highlighted Top Performers Podium */}
+
+{!loading && !error && leaderboard.length > 0 && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.8 }}
+    className="mb-8"
+  >
+    <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">Top Performers</h2>
+    <div className="flex flex-col sm:flex-row items-end justify-center gap-2 sm:gap-6 min-h-[400px] sm:min-h-[300px] relative">
+      
+      {/* Second Place */}
+      
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="w-1/4 sm:w-[200px] h-[220px] bg-gradient-to-b from-gray-200 to-gray-300 rounded-t-xl flex flex-col items-center relative order-1 sm:order-2"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-gray-400"></div>
+          <span className="absolute top-3 left-3 text-3xl">🥈</span>
+          <div className="flex flex-col items-center justify-end pb-6 h-full w-full">
+            <div className="w-16 h-16 bg-gray-400 rounded-full mb-4 flex items-center justify-center text-xl font-bold text-white">
+              {leaderboard[1]?.userName?.charAt(0)}
+            </div>
+            <p className="font-semibold text-gray-800 text-center px-2 truncate w-full">
+              {leaderboard[1]?.userName}
+            </p>
+            <p className="text-sm text-gray-600 mb-1 px-2 truncate w-full">{leaderboard[1]?.courseName}</p>
+            <p className={`text-xl font-bold ${getScoreColor(leaderboard[1]?.score)}`}>
+              {leaderboard[1]?.score}%
+            </p>
+          </div>
+        </motion.div>
+    
+      
+{/* First Place */}
+{leaderboard.length > 1 && (
+<motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="w-1/3 sm:w-[240px] h-[280px] bg-gradient-to-b from-yellow-100 to-yellow-200 rounded-t-xl flex flex-col items-center relative order-2 sm:order-1 z-10"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 1, duration: 0.5, type: "spring" }}
+          className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center z-10 shadow-lg"
+        >
+          <span className="text-4xl">👑</span>
+        </motion.div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400"></div>
+        <span className="absolute top-3 left-3 text-4xl">🥇</span>
+        <div className="flex flex-col items-center justify-end pb-8 h-full w-full">
+          <div className="w-20 h-20 bg-yellow-500 rounded-full mb-4 flex items-center justify-center text-2xl font-bold text-white shadow-md">
+            {leaderboard[0]?.userName?.charAt(0)}
+          </div>
+          <p className="font-bold text-yellow-800 text-lg text-center px-2 truncate w-full">
+            {leaderboard[0]?.userName}
+          </p>
+          <p className="text-sm text-yellow-700 mb-1 px-2 truncate w-full">{leaderboard[0]?.courseName}</p>
+          <p className="text-3xl font-bold text-yellow-600">
+            {leaderboard[0]?.score}%
+          </p>
+        </div>
+      </motion.div>)}
+
+      {/* Third Place */}
+      {leaderboard.length > 2 && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="w-1/4 sm:w-[200px] h-[180px] bg-gradient-to-b from-amber-100 to-amber-200 rounded-t-xl flex flex-col items-center relative order-3 sm:order-3"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-amber-600"></div>
+          <span className="absolute top-3 left-3 text-3xl">🥉</span>
+          <div className="flex flex-col items-center justify-end pb-4 h-full w-full">
+            <div className="w-14 h-14 bg-amber-500 rounded-full mb-4 flex items-center justify-center text-lg font-bold text-white">
+              {leaderboard[2]?.userName?.charAt(0)}
+            </div>
+            <p className="font-semibold text-amber-800 text-center px-2 truncate w-full">
+              {leaderboard[2]?.userName}
+            </p>
+            <p className="text-sm text-amber-700 mb-1 px-2 truncate w-full">{leaderboard[2]?.courseName}</p>
+            <p className={`text-xl font-bold ${getScoreColor(leaderboard[2]?.score)}`}>
+              {leaderboard[2]?.score}%
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  </motion.div>
+)}
+
         {/* Leaderboard Table (Hidden on Mobile) */}
         <div className="hidden sm:block">
-          {!loading && !error && leaderboard.length > 0 ? (
-            <motion.table
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="w-full border-collapse shadow-md rounded-lg overflow-hidden"
+          {!loading && !error && filteredLeaderboard().length > 0 ? (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="overflow-hidden rounded-xl shadow-md border border-gray-200"
             >
-              <thead>
-                <tr className="bg-blue-600 text-white">
-                  <th className="border p-3 text-left">Rank</th>
-                  <th className="border p-3 text-left">Student Name</th>
-                  <th className="border p-3 text-left">Course</th>
-                  <th className="border p-3 text-left">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaderboard.map((student, index) => (
-                  <motion.tr
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="hover:bg-gray-100 transition duration-300 ease-in-out"
-                  >
-                    <td className="border p-3 font-bold text-gray-700">
-                      {getMedal(index + 1)}
-                    </td>
-                    <td className="border p-3 font-semibold text-gray-800">
-                      {student.userName}
-                    </td>
-                    <td className="border p-3 text-gray-700">
-                      {student.courseName}
-                    </td>
-                    <td className="border p-3 text-blue-600 font-bold">
-                      {student.score}%
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </motion.table>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <th className="p-4 text-left font-semibold">Rank</th>
+                    <th
+                      className="p-4 text-left font-semibold cursor-pointer hover:bg-blue-700 transition-colors"
+                      onClick={() => sortLeaderboard("userName")}
+                    >
+                      Student Name {getSortIndicator("userName")}
+                    </th>
+                    <th
+                      className="p-4 text-left font-semibold cursor-pointer hover:bg-blue-700 transition-colors"
+                      onClick={() => sortLeaderboard("courseName")}
+                    >
+                      Course {getSortIndicator("courseName")}
+                    </th>
+                    <th
+                      className="p-4 text-left font-semibold cursor-pointer hover:bg-blue-700 transition-colors"
+                      onClick={() => sortLeaderboard("score")}
+                    >
+                      Score {getSortIndicator("score")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {filteredLeaderboard().map((student, index) => (
+                      <motion.tr
+                        key={index}
+                        variants={itemVariants}
+                        exit={{ opacity: 0, x: -100 }}
+                        className="hover:bg-blue-50 transition-colors cursor-pointer group"
+                      >
+                        <td className="p-4 font-bold">
+                          <div className="flex items-center">
+                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
+                              {getMedal(index + 1)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+                            {student.userName}
+                          </div>
+                        </td>
+                        <td className="p-4 text-gray-700">{student.courseName}</td>
+                        <td className="p-4">
+                          <span className={`font-bold ${getScoreColor(student.score)}`}>
+                            {student.score}%
+                          </span>
+                          <div className="w-full h-2 bg-gray-200 rounded-full mt-1">
+                            <div
+                              className={`h-full rounded-full ${
+                                student.score >= 90
+                                  ? "bg-green-500"
+                                  : student.score >= 80
+                                  ? "bg-blue-500"
+                                  : student.score >= 70
+                                  ? "bg-yellow-500"
+                                  : "bg-red-500"
+                              }`}
+                              style={{ width: `${student.score}%` }}
+                            ></div>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </motion.div>
           ) : (
-            !loading && (
-              <p className="text-center text-gray-600 mt-4">
-                No leaderboard data available.
-              </p>
+            !loading &&
+            !error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8"
+              >
+                <svg
+                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No Data Found</h3>
+                <p className="text-gray-500">No leaderboard data matches your criteria.</p>
+                {filterValue && (
+                  <button
+                    onClick={() => setFilterValue("")}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </motion.div>
             )
           )}
         </div>
 
         {/* Mobile-Friendly Card Layout */}
         <div className="sm:hidden">
-          {!loading && !error && leaderboard.length > 0 ? (
-            <div className="flex flex-col space-y-4">
-              {leaderboard.map((student, index) => (
+          {!loading && !error && filteredLeaderboard().length > 0 ? (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col space-y-4"
+            >
+              {filteredLeaderboard().map((student, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-4 bg-gray-100 rounded-lg shadow-md flex flex-col items-center"
+                  variants={itemVariants}
+                  exit={{ opacity: 0, x: -100 }}
+                  className={`p-4 rounded-lg shadow-md ${
+                    index === 0
+                      ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-l-4 border-yellow-400"
+                      : index === 1
+                      ? "bg-gradient-to-r from-gray-100 to-gray-200 border-l-4 border-gray-400"
+                      : index === 2
+                      ? "bg-gradient-to-r from-amber-100 to-amber-200 border-l-4 border-amber-500"
+                      : "bg-white border-l-4 border-blue-400"
+                  }`}
                 >
-                  <p className="text-lg font-bold text-gray-800">
-                    {getMedal(index + 1)} {student.userName}
-                  </p>
-                  <p className="text-gray-700 text-sm">{student.courseName}</p>
-                  <p className="text-blue-600 text-lg font-bold">
-                    {student.score}%
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm mr-2">
+                        {getMedal(index + 1)}
+                      </span>
+                      <p className="font-bold text-gray-800">{student.userName}</p>
+                    </div>
+                    <span className={`font-bold ${getScoreColor(student.score)}`}>
+                      {student.score}%
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm mb-2">{student.courseName}</p>
+                  <div className="w-full h-2 bg-gray-200 rounded-full">
+                    <div
+                      className={`h-full rounded-full ${
+                        student.score >= 90
+                          ? "bg-green-500"
+                          : student.score >= 80
+                          ? "bg-blue-500"
+                          : student.score >= 70
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
+                      }`}
+                      style={{ width: `${student.score}%` }}
+                    ></div>
+                  </div>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
-            !loading && (
-              <p className="text-center text-gray-600 mt-4">
-                No leaderboard data available.
-              </p>
+            !loading &&
+            !error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8"
+              >
+                <svg
+                  className="w-12 h-12 text-gray-400 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No Data Found</h3>
+                <p className="text-gray-500">No leaderboard data matches your criteria.</p>
+                {filterValue && (
+                  <button
+                    onClick={() => setFilterValue("")}
+                    className="mt-4 px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </motion.div>
             )
           )}
         </div>

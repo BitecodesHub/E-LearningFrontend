@@ -8,6 +8,7 @@ export const CourseModule = () => {
   const [loading, setLoading] = useState(true);
   const [courseTitle, setCourseTitle] = useState("");
   const [error, setError] = useState(null);
+  const [visitedModules, setVisitedModules] = useState([]);
   const navigate = useNavigate();
   const hasFetched = useRef(false);
 
@@ -27,6 +28,12 @@ export const CourseModule = () => {
       "3": "UX/UI Design Principles"
     };
     setCourseTitle(fakeCourseNames[courseId] || "Course Content");
+
+    // Load visited modules from localStorage
+    const storedVisitedModules = localStorage.getItem(`visitedModules_${courseId}`);
+    if (storedVisitedModules) {
+      setVisitedModules(JSON.parse(storedVisitedModules));
+    }
 
     // Fetch modules
     fetch(`${apiUrl}/module/course/${courseId}`)
@@ -48,6 +55,15 @@ export const CourseModule = () => {
   }, [courseId, apiUrl]);
 
   const handleModuleClick = (moduleId) => {
+    // Mark module as visited
+    if (!visitedModules.includes(moduleId)) {
+      const updatedVisitedModules = [...visitedModules, moduleId];
+      setVisitedModules(updatedVisitedModules);
+      
+      // Store visited modules in localStorage
+      localStorage.setItem(`visitedModules_${courseId}`, JSON.stringify(updatedVisitedModules));
+    }
+    
     navigate(`/course/${courseId}/module/${moduleId}`);
   };
 
@@ -88,7 +104,12 @@ export const CourseModule = () => {
   };
 
   const getProgressPercentage = () => {
-    return Math.floor(Math.random() * 100);
+    if (modules.length === 0) return 0;
+    return Math.floor((visitedModules.length / modules.length) * 100);
+  };
+
+  const isModuleVisited = (moduleId) => {
+    return visitedModules.includes(moduleId);
   };
 
   return (
@@ -135,6 +156,9 @@ export const CourseModule = () => {
                     style={{ width: `${getProgressPercentage()}%` }}
                   ></div>
                 </div>
+                <p className="text-xs text-indigo-700 mt-1">
+                  {visitedModules.length} of {modules.length} modules completed ({getProgressPercentage()}%)
+                </p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -234,17 +258,14 @@ export const CourseModule = () => {
                           <h3 className="text-lg font-semibold text-gray-800 mb-1">
                             {module[1]}
                           </h3>
-                          <div className="flex items-center mt-3">
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${
-                                  index % 3 === 0 ? "bg-indigo-500" : 
-                                  index % 3 === 1 ? "bg-purple-500" : "bg-blue-500"
-                                }`}
-                                style={{ width: `${Math.floor(Math.random() * 100)}%` }}
-                              ></div>
+                          {isModuleVisited(module[0]) && (
+                            <div className="flex items-center mt-2 text-green-600">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span className="text-xs font-medium">Completed</span>
                             </div>
-                          </div>
+                          )}
                         </div>
                         <div className="flex-shrink-0 text-gray-400">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

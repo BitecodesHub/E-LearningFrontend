@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
   
       if (data.success) {
-        // ✅ Store the backend JWT token, not the Google token
+        //  Store the backend JWT token, not the Google token
         sessionStorage.setItem("authToken", data.token);
         sessionStorage.setItem("userEmail", data.email);
         sessionStorage.setItem("userName", data.username);
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem("userId", data.userid);
         sessionStorage.setItem("userFirstName", data.name);
   
-        // ✅ Update React state
+        //  Update React state
         setIsAuthenticated(true);
         setUserEmail(data.email);
         setUserName(data.username);
