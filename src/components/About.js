@@ -3,7 +3,6 @@ import Avatar from "react-avatar";
 import { FaGithub, FaLinkedin, FaReact, FaFigma } from "react-icons/fa";
 import { SiSpringboot, SiNodedotjs, SiMysql, SiAngular } from "react-icons/si";
 import { motion } from "framer-motion";
-import { FiArrowUpRight } from "react-icons/fi";
 
 export const About = () => {
   const teamMembers = [

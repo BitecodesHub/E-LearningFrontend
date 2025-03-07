@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 export const TakeExam = () => {
@@ -6,6 +6,17 @@ export const TakeExam = () => {
   const userId = sessionStorage.getItem("userId");
   const navigate = useNavigate();
   
+  // Refs for handling focus trapping
+  const modalRef = useRef(null);
+  const firstFocusableElementRef = useRef(null);
+  const lastFocusableElementRef = useRef(null);
+  
+  // State for popup modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [examStarted, setExamStarted] = useState(false);
+  const [attemptedToLeave, setAttemptedToLeave] = useState(false);
+  
+  // Exam states
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(40 * 60);
@@ -21,6 +32,7 @@ export const TakeExam = () => {
     []
   );
 
+  // Fetch questions when component mounts
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -38,6 +50,8 @@ export const TakeExam = () => {
         setError("Failed to load exam questions. Please try again.");
       } finally {
         setLoading(false);
+        // Auto-open modal when questions are loaded
+        setIsModalOpen(true);
       }
     };
 
@@ -46,36 +60,44 @@ export const TakeExam = () => {
     }
   }, [courseId, apiUrl]);
 
+  // Timer effect
   useEffect(() => {
-    if (timeLeft <= 0) {
-      submitExam();
-      return;
-    }
+    if (!examStarted || timeLeft <= 0) return;
     
     const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    
+    if (timeLeft <= 0) {
+      submitExam();
+    }
+    
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, examStarted]);
 
+  // Format time
   const formattedTime = useMemo(() => {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = String(timeLeft % 60).padStart(2, "0");
     return `${minutes}:${seconds}`;
   }, [timeLeft]);
 
+  // Progress calculation
   const progress = useMemo(() => {
     if (!questions.length) return 0;
     return Object.keys(answers).length / questions.length * 100;
   }, [answers, questions]);
 
+  // Check if current question is answered
   const isCurrentQuestionAnswered = useMemo(() => {
     if (!questions.length) return false;
     return !!answers[questions[currentQuestionIndex]?.id];
   }, [answers, questions, currentQuestionIndex]);
 
+  // Handle answer selection
   const handleAnswerChange = useCallback((questionId, option) => {
     setAnswers(prev => ({ ...prev, [questionId]: option }));
   }, []);
 
+  // Navigation functions
   const nextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -94,7 +116,7 @@ export const TakeExam = () => {
     }
   }, [questions.length]);
 
-  // Modified submit function with 'E' default
+  // Submit exam function
   const submitExam = useCallback(async () => {
     if (submitting) return;
     
@@ -118,6 +140,7 @@ export const TakeExam = () => {
       }
       
       const data = await response.json();
+      setIsModalOpen(false);
       navigate(`/result/${data.id}`);
     } catch (err) {
       console.error("Error submitting exam:", err);
@@ -126,7 +149,16 @@ export const TakeExam = () => {
     }
   }, [apiUrl, userId, courseId, answers, navigate, submitting, questions]);
 
+  // Handle start exam
+  const handleStartExam = () => {
+    setExamStarted(true);
+    document.body.style.overflow = "hidden"; // Prevent scrolling
+  };
+
+  // Watch for keyboard navigation
   useEffect(() => {
+    if (!examStarted) return;
+    
     const handleKeyDown = (e) => {
       if (loading || submitting) return;
       
@@ -137,239 +169,397 @@ export const TakeExam = () => {
       } else if (e.key >= "1" && e.key <= "4" && questions[currentQuestionIndex]) {
         const optionMap = { "1": "A", "2": "B", "3": "C", "4": "D" };
         handleAnswerChange(questions[currentQuestionIndex].id, optionMap[e.key]);
+      } else if (e.key === "Tab") {
+        // Trap focus within the modal
+        if (modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          
+          if (focusableElements.length) {
+            firstFocusableElementRef.current = focusableElements[0];
+            lastFocusableElementRef.current = focusableElements[focusableElements.length - 1];
+            
+            if (e.shiftKey && document.activeElement === firstFocusableElementRef.current) {
+              e.preventDefault();
+              lastFocusableElementRef.current.focus();
+            } else if (!e.shiftKey && document.activeElement === lastFocusableElementRef.current) {
+              e.preventDefault();
+              firstFocusableElementRef.current.focus();
+            }
+          }
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [loading, submitting, prevQuestion, nextQuestion, handleAnswerChange, questions, currentQuestionIndex]);
+  }, [loading, submitting, prevQuestion, nextQuestion, handleAnswerChange, questions, currentQuestionIndex, examStarted]);
 
+  // Handle browser leave/refresh warnings
   useEffect(() => {
+    if (!examStarted) return;
+
     const handleBeforeUnload = (e) => {
       if (Object.keys(answers).length > 0 && !submitting) {
         e.preventDefault();
-        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+        e.returnValue = "You have unsaved exam progress. Are you sure you want to leave? All your progress will be lost.";
         return e.returnValue;
+      }
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setAttemptedToLeave(true);
       }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [answers, submitting]);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.body.style.overflow = "auto"; // Restore scrolling
+    };
+  }, [answers, submitting, examStarted]);
 
+  // Get current question
   const currentQuestion = useMemo(() => 
     questions[currentQuestionIndex] || null,
     [questions, currentQuestionIndex]
   );
-  // Timer effect
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      submitExam();
-      return;
+
+  // Close modal handler (with confirmation)
+  const handleCloseAttempt = () => {
+    if (Object.keys(answers).length > 0 && !submitting) {
+      if (window.confirm("Are you sure you want to exit? All your progress will be lost.")) {
+        setIsModalOpen(false);
+        setExamStarted(false);
+        navigate(-1);
+      }
+    } else {
+      setIsModalOpen(false);
+      setExamStarted(false);
+      navigate(-1);
     }
-    
-    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  };
 
-  // Format timer display
-  
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (loading || submitting) return;
-      
-      if (e.key === "ArrowLeft") {
-        prevQuestion();
-      } else if (e.key === "ArrowRight") {
-        nextQuestion();
-      } else if (e.key >= "1" && e.key <= "4" && questions[currentQuestionIndex]) {
-        // Map 1-4 to A-D
-        const optionMap = { "1": "A", "2": "B", "3": "C", "4": "D" };
-        handleAnswerChange(questions[currentQuestionIndex].id, optionMap[e.key]);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [loading, submitting, prevQuestion, nextQuestion, handleAnswerChange, questions, currentQuestionIndex]);
-
-  // Confirmation before leaving
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (Object.keys(answers).length > 0 && !submitting) {
-        e.preventDefault();
-        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
-        return e.returnValue;
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [answers, submitting]);
-
-  // Current question
- 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex flex-col">
-      <div className="flex-grow w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 my-6">
-        {/* Header with timer */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Exam</h1>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <span className="text-lg font-semibold text-red-600" aria-live="polite" role="timer">
-                {formattedTime}
-              </span>
+    <div className="relative w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex flex-col items-center justify-center p-4">
+      {/* Fullscreen Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+          {/* Attempted to leave warning */}
+          {attemptedToLeave && (
+            <div className="absolute top-0 left-0 right-0 bg-red-600 text-white py-2 px-4 text-center font-semibold">
+              Warning: Leaving this tab or window may result in losing your exam progress!
             </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
+          )}
+          
           <div 
-            className="h-full bg-blue-500 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-            role="progressbar"
-            aria-valuenow={progress}
-            aria-valuemin="0"
-            aria-valuemax="100"
-          ></div>
-        </div>
-
-        {/* Loading state */}
-        {loading ? (
-          <div className="flex justify-center items-center my-12">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin" aria-label="Loading"></div>
-          </div>
-        ) : error ? (
-          /* Error state */
-          <div className="text-center my-12">
-            <p className="text-red-600 text-lg mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-lg font-semibold"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : submitting ? (
-          /* Submitting state */
-          <div className="flex flex-col items-center my-12">
-            <p className="text-lg font-semibold text-gray-700 mb-4">Submitting your exam...</p>
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin" aria-label="Submitting"></div>
-          </div>
-        ) : questions.length > 0 && currentQuestion ? (
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Question navigation sidebar */}
-            <div className="w-full md:w-48 flex-shrink-0">
-              <h2 className="text-lg font-semibold mb-3">Questions</h2>
-              <div className="grid grid-cols-4 md:grid-cols-3 gap-2">
-                {questions.map((q, idx) => (
-                  <button
-                    key={q.id}
-                    onClick={() => goToQuestion(idx)}
-                    className={`w-full h-10 flex items-center justify-center rounded-md font-medium transition-colors
-                      ${currentQuestionIndex === idx ? 'bg-blue-500 text-white' : 
-                        answers[q.id] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
-                    aria-label={`Go to question ${idx + 1}${answers[q.id] ? ' (answered)' : ''}`}
-                    aria-current={currentQuestionIndex === idx ? 'true' : 'false'}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
+            ref={modalRef}
+            className="w-full max-w-5xl h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-4 flex justify-between items-center">
+              <h1 id="modal-title" className="text-2xl font-bold text-white">Online Examination</h1>
               
-              {/* Summary */}
-              <div className="mt-6 bg-gray-50 p-3 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">{Object.keys(answers).length}</span> of <span className="font-medium">{questions.length}</span> answered
-                </p>
+              {/* Timer display */}
+              <div className="flex items-center space-x-4">
+                {examStarted && (
+                  <div className="flex items-center bg-white bg-opacity-20 rounded-lg px-4 py-1">
+                    <span className="mr-2 text-white font-medium">Time Remaining:</span>
+                    <div className="px-3 py-1 bg-white rounded-md">
+                      <span className="text-lg font-semibold text-red-600" aria-live="polite" role="timer">
+                        {formattedTime}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleCloseAttempt}
+                  className="text-white bg-red-500 hover:bg-red-700 rounded-full p-1"
+                  aria-label="Close exam"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
             
-            {/* Main question area */}
-            <div className="flex-grow">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">
-                  {currentQuestionIndex + 1}. {currentQuestion.questionText}
-                </h2>
-
-                {/* Options */}
-                <div className="grid grid-cols-1 gap-3">
-                  {["A", "B", "C", "D"].map((option) => (
-                    <label
-                      key={option}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors
-                        ${answers[currentQuestion.id] === option
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-50 hover:bg-gray-100"}`}
-                      htmlFor={`question-${currentQuestion.id}-option-${option}`}
-                    >
-                      <input
-                        id={`question-${currentQuestion.id}-option-${option}`}
-                        type="radio"
-                        name={`question-${currentQuestion.id}`}
-                        value={option}
-                        checked={answers[currentQuestion.id] === option}
-                        onChange={() => handleAnswerChange(currentQuestion.id, option)}
-                        className="mr-3"
-                      />
-                      <span className="font-medium mr-2">{option}.</span> {currentQuestion[`option${option}`]}
-                    </label>
-                  ))}
+            {!examStarted ? (
+              /* Exam Start Screen */
+              <div className="flex-grow flex flex-col items-center justify-center p-8 text-center">
+                <h2 className="text-3xl font-bold text-gray-800 mb-6">Examination Rules</h2>
+                <div className="max-w-2xl bg-gray-50 p-6 rounded-lg shadow-sm mb-8 text-left">
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <span className="mr-2 mt-1 text-green-600">✓</span>
+                      <span>You have <strong>40 minutes</strong> to complete the exam.</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2 mt-1 text-green-600">✓</span>
+                      <span>Do not leave the examination screen or switch tabs/applications.</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2 mt-1 text-green-600">✓</span>
+                      <span>All unanswered questions will be marked as option E (not answered).</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2 mt-1 text-green-600">✓</span>
+                      <span>Use keyboard shortcuts: Arrow keys (navigation), Numbers 1-4 (options A-D).</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2 mt-1 text-green-600">✓</span>
+                      <span>The exam will automatically submit when the timer reaches zero.</span>
+                    </li>
+                  </ul>
                 </div>
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between mt-6">
+                
                 <button
-                  className={`px-6 py-2 rounded-lg text-white font-semibold transition-colors
-                    ${currentQuestionIndex === 0 
-                      ? "bg-gray-300 cursor-not-allowed" 
-                      : "bg-gray-700 hover:bg-gray-900"}`}
-                  onClick={prevQuestion}
-                  disabled={currentQuestionIndex === 0}
-                  aria-label="Previous question"
+                  onClick={handleStartExam}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
                 >
-                  Previous
+                  Start Exam Now
                 </button>
+              </div>
+            ) : (
+              /* Main Exam Content */
+              <div className="flex-grow flex flex-col p-4 overflow-auto">
+                {/* Progress bar */}
+                <div className="w-full h-3 bg-gray-200 rounded-full mb-6">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                    role="progressbar"
+                    aria-valuenow={progress}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
 
-                {currentQuestionIndex === questions.length - 1 ? (
-                  <button
-                    className={`px-6 py-2 text-white rounded-lg font-semibold transition-colors
-                      ${Object.keys(answers).length === questions.length
-                        ? "bg-green-500 hover:bg-green-700"
-                        : "bg-blue-500 hover:bg-blue-700"}`}
-                    onClick={submitExam}
-                  >
-                    {Object.keys(answers).length === questions.length ? "Submit Exam" : "Submit (some questions unanswered)"}
-                  </button>
+                {/* Loading state */}
+                {loading ? (
+                  <div className="flex-grow flex justify-center items-center">
+                    <div className="w-16 h-16 border-4 border-indigo-500 border-t-purple-500 rounded-full animate-spin" aria-label="Loading"></div>
+                  </div>
+                ) : error ? (
+                  /* Error state */
+                  <div className="flex-grow flex flex-col items-center justify-center">
+                    <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4 max-w-md text-center">
+                      <p className="text-lg font-medium mb-2">Error Loading Exam</p>
+                      <p>{error}</p>
+                    </div>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-lg font-semibold"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : submitting ? (
+                  /* Submitting state */
+                  <div className="flex-grow flex flex-col items-center justify-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 border-4 border-indigo-500 border-t-purple-500 rounded-full animate-spin mb-4" aria-label="Submitting"></div>
+                      <p className="text-xl font-semibold text-gray-700">Submitting your exam...</p>
+                      <p className="text-gray-500 mt-2">Please wait, don't close this window.</p>
+                    </div>
+                  </div>
+                ) : questions.length > 0 && currentQuestion ? (
+                  <div className="flex-grow flex flex-col md:flex-row gap-6">
+                    {/* Question navigation sidebar */}
+                    <div className="w-full md:w-56 flex-shrink-0 md:h-[calc(100vh-220px)] md:overflow-y-auto bg-gray-50 p-4 rounded-lg">
+                      <h2 className="text-lg font-semibold mb-3 text-gray-800">Question Navigator</h2>
+                      <div className="grid grid-cols-5 md:grid-cols-3 gap-2 mb-4">
+                        {questions.map((q, idx) => (
+                          <button
+                            key={q.id}
+                            onClick={() => goToQuestion(idx)}
+                            className={`w-full h-10 flex items-center justify-center rounded-md font-medium transition-all
+                              ${currentQuestionIndex === idx 
+                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white ring-2 ring-offset-2 ring-blue-300' 
+                                : answers[q.id] 
+                                  ? 'bg-green-100 text-green-800 border border-green-300' 
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                            aria-label={`Go to question ${idx + 1}${answers[q.id] ? ' (answered)' : ''}`}
+                            aria-current={currentQuestionIndex === idx ? 'true' : 'false'}
+                          >
+                            {idx + 1}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Summary */}
+                      <div className="mt-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Exam Progress</h3>
+                        <div className="space-y-2">
+                          <p className="text-sm flex justify-between">
+                            <span>Total Questions:</span>
+                            <span className="font-medium">{questions.length}</span>
+                          </p>
+                          <p className="text-sm flex justify-between">
+                            <span>Answered:</span>
+                            <span className="font-medium text-green-600">{Object.keys(answers).length}</span>
+                          </p>
+                          <p className="text-sm flex justify-between">
+                            <span>Remaining:</span>
+                            <span className="font-medium text-red-500">{questions.length - Object.keys(answers).length}</span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Submit button for small screens */}
+                      <div className="mt-4 md:hidden">
+                        <button
+                          className={`w-full py-3 text-white rounded-lg font-semibold transition-colors
+                            ${Object.keys(answers).length === questions.length
+                              ? "bg-green-500 hover:bg-green-700"
+                              : "bg-blue-500 hover:bg-blue-700"}`}
+                          onClick={submitExam}
+                        >
+                          {Object.keys(answers).length === questions.length ? "Submit Exam" : `Submit (${questions.length - Object.keys(answers).length} unanswered)`}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Main question area */}
+                    <div className="flex-grow flex flex-col">
+                      <div className="bg-white p-6 rounded-lg shadow-sm mb-4 flex-grow">
+                        <div className="flex items-center justify-between mb-6">
+                          <h2 className="text-lg font-medium text-gray-500">
+                            Question {currentQuestionIndex + 1} of {questions.length}
+                          </h2>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium
+                            ${isCurrentQuestionAnswered ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                            {isCurrentQuestionAnswered ? "Answered" : "Not Answered"}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-gray-800 mb-6">
+                          {currentQuestion.questionText}
+                        </h3>
+
+                        {/* Options */}
+                        <div className="space-y-3">
+                          {["A", "B", "C", "D"].map((option) => (
+                            <label
+                              key={option}
+                              className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all
+                                ${answers[currentQuestion.id] === option
+                                  ? "bg-blue-50 border-blue-500 text-blue-800 shadow-sm"
+                                  : "bg-white border-gray-200 hover:bg-gray-50"}`}
+                              htmlFor={`question-${currentQuestion.id}-option-${option}`}
+                            >
+                              <div className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 border-2
+                                ${answers[currentQuestion.id] === option
+                                  ? "bg-blue-500 border-blue-500 text-white"
+                                  : "border-gray-300"}`}>
+                                {answers[currentQuestion.id] === option && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                              <input
+                                id={`question-${currentQuestion.id}-option-${option}`}
+                                type="radio"
+                                name={`question-${currentQuestion.id}`}
+                                value={option}
+                                checked={answers[currentQuestion.id] === option}
+                                onChange={() => handleAnswerChange(currentQuestion.id, option)}
+                                className="sr-only"
+                              />
+                              <div>
+                                <span className="font-medium text-gray-800">{option}.</span> {currentQuestion[`option${option}`]}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Navigation Buttons */}
+                      <div className="flex justify-between mt-auto">
+                        <button
+                          className={`px-6 py-3 rounded-lg font-semibold transition-all
+                            ${currentQuestionIndex === 0 
+                              ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                              : "bg-gray-700 hover:bg-gray-900 text-white shadow hover:shadow-md"}`}
+                          onClick={prevQuestion}
+                          disabled={currentQuestionIndex === 0}
+                          aria-label="Previous question"
+                        >
+                          ← Previous
+                        </button>
+
+                        {/* Submit button (desktop) */}
+                        {currentQuestionIndex === questions.length - 1 && (
+                          <div className="hidden md:block">
+                            <button
+                              className={`px-8 py-3 text-white rounded-lg font-semibold transition-all shadow hover:shadow-md
+                                ${Object.keys(answers).length === questions.length
+                                  ? "bg-green-500 hover:bg-green-700"
+                                  : "bg-blue-500 hover:bg-blue-700"}`}
+                              onClick={submitExam}
+                            >
+                              {Object.keys(answers).length === questions.length ? "Submit Exam" : `Submit (${questions.length - Object.keys(answers).length} unanswered)`}
+                            </button>
+                          </div>
+                        )}
+
+                        <button
+                          className={`px-6 py-3 rounded-lg font-semibold transition-all shadow hover:shadow-md
+                            ${currentQuestionIndex === questions.length - 1
+                              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                              : "bg-blue-600 hover:bg-blue-800 text-white"}`}
+                          onClick={nextQuestion}
+                          disabled={currentQuestionIndex === questions.length - 1}
+                          aria-label="Next question"
+                        >
+                          {isCurrentQuestionAnswered ? "Next →" : "Skip →"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  <button
-                    className="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-                    onClick={nextQuestion}
-                    aria-label="Next question"
-                  >
-                    {isCurrentQuestionAnswered ? "Next" : "Skip"}
-                  </button>
+                  <div className="flex-grow flex items-center justify-center">
+                    <p className="text-center text-gray-600">No questions available for this exam.</p>
+                  </div>
+                )}
+                
+                {/* Keyboard shortcuts help */}
+                {examStarted && !loading && !submitting && questions.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-center text-gray-500 text-sm">
+                      <div className="px-2 py-1 rounded bg-gray-100 mr-2">←→</div>
+                      <span className="mr-4">Navigate between questions</span>
+                      
+                      <div className="px-2 py-1 rounded bg-gray-100 mr-2">1-4</div>
+                      <span>Select options A-D</span>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
-        ) : (
-          <p className="text-center text-gray-600 mt-12">No questions available for this exam.</p>
-        )}
+        </div>
+      )}
+      
+      {/* Background content (hidden when modal is open) */}
+      <div className={`w-full max-w-lg mx-auto bg-white rounded-xl shadow-lg p-8 ${isModalOpen ? 'blur-sm' : ''}`}>
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Online Examination System</h1>
+        <p className="text-gray-600 text-center mb-8">Please wait while we prepare your examination...</p>
         
-        {/* Keyboard shortcuts help */}
-        {!loading && !submitting && questions.length > 0 && (
-          <div className="mt-8 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              <span className="font-medium">Keyboard shortcuts:</span> Arrow keys to navigate questions, number keys 1-4 to select options A-D
-            </p>
-          </div>
-        )}
+        <div className="flex justify-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin"></div>
+        </div>
       </div>
     </div>
   );

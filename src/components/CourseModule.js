@@ -336,3 +336,4 @@ export const CourseModule = () => {
     </div>
   );
 };
+export default CourseModule;
