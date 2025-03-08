@@ -92,10 +92,11 @@ export const HomePage = () => {
         <section className="text-center mb-20 relative">
           <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-full max-w-md h-16 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-10 blur-3xl rounded-full"></div>
           <h2 className="text-4xl sm:text-6xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight py-5 animate-pulse-slow">
-            Master Programming Today
+            Learn, Grow, Succeed.
           </h2>
           <p className="text-lg sm:text-xl mb-8 max-w-2xl mx-auto text-indigo-900 opacity-80">
-            Learn programming at your own pace with expert-led courses, hands-on projects, and AI-powered assistance.
+            Learn programming at your own pace with expert-led courses, hands-on
+            projects, and AI-powered assistance.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="px-8 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105 hover:shadow-lg hover:shadow-indigo-200 flex items-center justify-center">
@@ -116,10 +117,12 @@ export const HomePage = () => {
         {/* Courses Section with Blue Running Light Animation */}
         <section className="mb-16">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Popular Courses</h3>
-            <button 
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+              Popular Courses
+            </h3>
+            <button
               className="text-purple-600 hover:text-purple-800 flex items-center group"
-              onClick={() => navigate('/courses')}
+              onClick={() => navigate("/courses")}
             >
               <span className="group-hover:mr-2 transition-all">View All</span>
               <FaArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
@@ -142,7 +145,9 @@ export const HomePage = () => {
                 <CourseCard key={index} course={course} index={index} />
               ))
             ) : (
-              <p className="text-center text-gray-600 col-span-3">No courses available at the moment.</p>
+              <p className="text-center text-gray-600 col-span-3">
+                No courses available at the moment.
+              </p>
             )}
           </div>
         </section>
@@ -153,33 +158,50 @@ export const HomePage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-8 overflow-hidden relative">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-100 rounded-full opacity-20"></div>
             <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-purple-100 rounded-full opacity-20"></div>
-            
+
             <div className="flex flex-col md:flex-row items-center gap-8 relative">
               <div className="md:w-1/2">
-                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">AI-Powered Learning</h3>
+                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  AI-Powered Learning
+                </h3>
                 <p className="mb-4 text-gray-700">
-                  Supercharge your learning with our new AI assistant. Get personalized help, code reviews,
-                  and instant answers to your programming questions.
+                  Supercharge your learning with our new AI assistant. Get
+                  personalized help, code reviews, and instant answers to your
+                  programming questions.
                 </p>
                 <ul className="mb-6 space-y-3">
                   <li className="flex items-center bg-indigo-50 p-2 rounded-lg">
-                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">✓</span> 
-                    <span className="text-indigo-800">Personalized learning recommendations</span>
+                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">
+                      ✓
+                    </span>
+                    <span className="text-indigo-800">
+                      Personalized learning recommendations
+                    </span>
                   </li>
                   <li className="flex items-center bg-indigo-50 p-2 rounded-lg">
-                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">✓</span> 
-                    <span className="text-indigo-800">Real-time code analysis</span>
+                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">
+                      ✓
+                    </span>
+                    <span className="text-indigo-800">
+                      Real-time code analysis
+                    </span>
                   </li>
                   <li className="flex items-center bg-indigo-50 p-2 rounded-lg">
-                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">✓</span> 
-                    <span className="text-indigo-800">24/7 programming assistance</span>
+                    <span className="text-green-500 mr-2 bg-white p-1 rounded-full">
+                      ✓
+                    </span>
+                    <span className="text-indigo-800">
+                      24/7 programming assistance
+                    </span>
                   </li>
                 </ul>
-                <button 
+                <button
                   className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg hover:shadow-indigo-200 transform hover:-translate-y-1 group"
-                  onClick={() => navigate('/ai')}
+                  onClick={() => navigate("/ai")}
                 >
-                  <span className="group-hover:mr-2 transition-all">Learn More</span>
+                  <span className="group-hover:mr-2 transition-all">
+                    Learn More
+                  </span>
                   <FaArrowRight className="inline ml-2 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
@@ -215,7 +237,7 @@ export const HomePage = () => {
         }
 
         .course-card::before {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: 0;
@@ -224,8 +246,7 @@ export const HomePage = () => {
           border-radius: 1rem;
           padding: 2px;
           background: linear-gradient(90deg, transparent, #3b82f6, transparent);
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
+          -webkit-mask: linear-gradient(#fff 0 0) content-box,
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
@@ -342,21 +363,30 @@ export const HomePage = () => {
             opacity: 1;
           }
         }
-        
+
         @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+          }
         }
-        
+
         @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
-        
+
         .animate-pulse-slow {
           animation: pulse-slow 3s ease-in-out infinite;
         }
-        
+
         .animate-spin-slow {
           animation: spin-slow 12s linear infinite;
         }
