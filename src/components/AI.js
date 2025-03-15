@@ -44,7 +44,29 @@ const LearnWithoutLimitsAI = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    // Optional: Add a toast notification here
+  };
+
+  const extractCodeFromText = (text) => {
+    const codePatterns = [
+      /public\s+class\s+\w+\s*{[^}]*}/gs,
+      /public\s+static\s+void\s+main\s*\([^)]*\)\s*{[^}]*}/gs,
+      /(System\.(out|err)\.(print|println)\("[^"]*"\);)/g
+    ];
+    
+    let code = "";
+    let remainingText = text;
+    
+    codePatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          code += match + "\n";
+          remainingText = remainingText.replace(match, '');
+        });
+      }
+    });
+
+    return { code: code.trim() || null, text: remainingText.trim() };
   };
 
   const generate = async () => {
@@ -78,13 +100,13 @@ const LearnWithoutLimitsAI = () => {
       while (true) {
         const { done, value } = await reader.read();
         if (done || isStopped) {
-          if (codeBlock) {
-            setChatMessages((prev) => {
-              const updatedMessages = [...prev];
-              updatedMessages[updatedMessages.length - 1].code = codeBlock;
-              return updatedMessages;
-            });
-          }
+          const { code, text } = extractCodeFromText(tempText + codeBlock);
+          setChatMessages((prev) => {
+            const updatedMessages = [...prev];
+            updatedMessages[updatedMessages.length - 1].text = text;
+            updatedMessages[updatedMessages.length - 1].code = code;
+            return updatedMessages;
+          });
           break;
         }
     
@@ -101,6 +123,7 @@ const LearnWithoutLimitsAI = () => {
                     setChatMessages((prev) => {
                       const updatedMessages = [...prev];
                       updatedMessages[updatedMessages.length - 1].code = codeBlock;
+                      updatedMessages[updatedMessages.length - 1].text = tempText;
                       return updatedMessages;
                     });
                     codeBlock = "";
@@ -120,6 +143,7 @@ const LearnWithoutLimitsAI = () => {
         setChatMessages((prev) => {
           const updatedMessages = [...prev];
           updatedMessages[updatedMessages.length - 1].text = tempText;
+          if (codeBlock) updatedMessages[updatedMessages.length - 1].code = codeBlock;
           return updatedMessages;
         });
       }
@@ -132,7 +156,7 @@ const LearnWithoutLimitsAI = () => {
       }
     } finally {
       setLoading(false);
-      setIsStopped(false); // Reset isStopped state
+      setIsStopped(false);
       controllerRef.current = null;
     }
   };
@@ -166,9 +190,12 @@ const LearnWithoutLimitsAI = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}
-      className={`min-h-screen flex justify-center items-center p-4 transition-colors duration-500 ${isDarkMode ? "bg-gradient-to-br from-gray-900 to-purple-900" : "bg-gradient-to-br from-blue-50 to-indigo-100"}`}>
-      
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.8 }}
+      className={`min-h-screen flex justify-center items-center p-4 transition-colors duration-500 ${isDarkMode ? "bg-gradient-to-br from-gray-900 to-purple-900" : "bg-gradient-to-br from-blue-50 to-indigo-100"}`}
+    >
       <motion.div 
         layout
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
