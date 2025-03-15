@@ -30,6 +30,7 @@ import { CertificateQr } from "./components/CertificateQr";
 import { SocialMedia } from "./components/SocialMedia";
 import LegalTermsPage from "./components/LegalTermsPage";
 import AI from "./components/AI";
+import OnlineCompiler from "./components/Compiler";
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           <Route path="/credential/:credentialId" element={<CertificateQr />} />
           <Route path="/socialmedia" element={<SocialMedia />} />
           <Route path="/terms" element={<LegalTermsPage />} /> 
+          <Route path="/compiler" element={<OnlineCompiler />} /> 
           <Route
             path="/course/:courseId/module/:moduleNumber"
             element={<CourseModuleDetail />}
@@ -56,18 +58,6 @@ function App() {
           <Route path="/leaderboard" element={<LeaderBoard/>} />
           <Route path="/credential-verify" element={<VerifyCredential />} />
           <Route path="/ai" element={<AI />} />
-          
-
-          {/* Protect Routes */}
-          {/* <Route path="/course/:courseId/exam" element={<TakeExam />} />
-          <Route path="/admincourses" element={<AdminCoursePanel />} />
-          <Route path="/certificates" element={<ShowCertificates />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/addcourse" element={<AddCourse />} />
-          <Route path="/result/:attemptId" element={<ExamResult />} />
-          <Route path="/course/add-module" element={<AddModule />} />
-          <Route path="/attempts" element={<UserAttempts />} /> */}
-          {/* <Route path="/addcourse" element={<ProtectedRoute> <AddCourse /> </ProtectedRoute>}/> */}
 
 
           <Route path="/course/:courseId/exam" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />

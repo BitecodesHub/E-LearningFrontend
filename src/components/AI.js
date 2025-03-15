@@ -37,18 +37,24 @@ const LearnWithoutLimitsAI = () => {
   const toggleTheme = () => setIsDarkMode((prev) => !prev);
   const toggleMinimize = () => setMinimized((prev) => !prev);
 
-  const appendMessage = (text, className) => {
-    chatHistoryRef.current.push({ text, className, id: Date.now() });
+  const appendMessage = (text, className, code = null) => {
+    chatHistoryRef.current.push({ text, className, id: Date.now(), code });
     setChatMessages([...chatHistoryRef.current.slice(-50)]);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    // Optional: Add a toast notification here
   };
 
   const generate = async () => {
     if (!message.trim()) return;
     
     setIsStopped(false);
+    const userMessage = message;
     setMessage("");
     setLoading(true);
-    appendMessage(message, "user-message");
+    appendMessage(userMessage, "user-message");
     appendMessage("", "ai-message");
     
     controllerRef.current = new AbortController();
@@ -57,7 +63,7 @@ const LearnWithoutLimitsAI = () => {
       const response = await fetch("https://ai.bitecodes.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "stable-code:3b", prompt: message, stream: true }),
+        body: JSON.stringify({ model: "stable-code:3b", prompt: userMessage, stream: true }),
         signal: controllerRef.current.signal,
       });
     
@@ -65,12 +71,22 @@ const LearnWithoutLimitsAI = () => {
     
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let fullText = "";
       let tempText = "";
+      let codeBlock = "";
+      let isInCodeBlock = false;
     
       while (true) {
         const { done, value } = await reader.read();
-        if (done || isStopped) break;
+        if (done || isStopped) {
+          if (codeBlock) {
+            setChatMessages((prev) => {
+              const updatedMessages = [...prev];
+              updatedMessages[updatedMessages.length - 1].code = codeBlock;
+              return updatedMessages;
+            });
+          }
+          break;
+        }
     
         const chunk = decoder.decode(value, { stream: true });
         chunk.split("\n").forEach((line) => {
@@ -78,7 +94,22 @@ const LearnWithoutLimitsAI = () => {
             try {
               const json = JSON.parse(line.replace("data: ", "").trim());
               if (json.response) {
-                tempText += json.response;
+                const text = json.response;
+                if (text.includes("```")) {
+                  isInCodeBlock = !isInCodeBlock;
+                  if (!isInCodeBlock && codeBlock) {
+                    setChatMessages((prev) => {
+                      const updatedMessages = [...prev];
+                      updatedMessages[updatedMessages.length - 1].code = codeBlock;
+                      return updatedMessages;
+                    });
+                    codeBlock = "";
+                  }
+                } else if (isInCodeBlock) {
+                  codeBlock += text + "\n";
+                } else {
+                  tempText += text;
+                }
               }
             } catch (e) {
               console.error("Error parsing JSON:", e);
@@ -101,14 +132,17 @@ const LearnWithoutLimitsAI = () => {
       }
     } finally {
       setLoading(false);
+      setIsStopped(false); // Reset isStopped state
       controllerRef.current = null;
     }
   };
 
   const stopGeneration = () => {
-    setIsStopped(true);
-    controllerRef.current?.abort();
-    setLoading(false);
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+      setIsStopped(true);
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (event) => setMessage(event.target.value);
@@ -142,7 +176,6 @@ const LearnWithoutLimitsAI = () => {
           minimized ? "h-24" : "h-[90vh]"
         } ${isDarkMode ? "bg-gray-800 shadow-purple-700/30" : "bg-white shadow-blue-300/50"}`}
       >
-        {/* Header */}
         <header className={`p-4 sm:p-6 flex justify-between items-center ${isDarkMode ? "bg-gray-800" : "bg-white"} border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
           <div className="flex items-center space-x-3">
             <motion.div 
@@ -190,7 +223,6 @@ const LearnWithoutLimitsAI = () => {
               exit="exit"
               className="flex flex-col h-[calc(90vh-80px)]"
             >
-              {/* Chat Container */}
               <div 
                 ref={chatContainerRef} 
                 className={`flex-grow overflow-y-auto p-4 sm:p-6 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
@@ -209,14 +241,33 @@ const LearnWithoutLimitsAI = () => {
                           AI
                         </div>
                       )}
-                      <div 
-                        className={`max-w-[85%] p-3 sm:p-4 rounded-2xl ${
-                          msg.className === "user-message" 
-                            ? `bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20` 
-                            : `${isDarkMode ? "bg-gray-800 text-gray-200" : "bg-white text-gray-800"} shadow-md ${isDarkMode ? "shadow-gray-900/50" : "shadow-gray-200/50"}`
-                        }`}
-                      >
-                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                      <div className="flex flex-col max-w-[85%]">
+                        <div 
+                          className={`p-3 sm:p-4 rounded-2xl ${
+                            msg.className === "user-message" 
+                              ? `bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20` 
+                              : `${isDarkMode ? "bg-gray-800 text-gray-200" : "bg-white text-gray-800"} shadow-md ${isDarkMode ? "shadow-gray-900/50" : "shadow-gray-200/50"}`
+                          }`}
+                        >
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                        </div>
+                        {msg.code && (
+                          <div className={`mt-2 p-3 rounded-xl ${isDarkMode ? "bg-gray-700" : "bg-gray-100"} relative`}>
+                            <pre className="text-sm overflow-x-auto">
+                              <code>{msg.code}</code>
+                            </pre>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => copyToClipboard(msg.code)}
+                              className={`absolute top-2 right-2 px-2 py-1 text-xs rounded ${
+                                isDarkMode ? "bg-gray-600 text-gray-200" : "bg-gray-200 text-gray-800"
+                              }`}
+                            >
+                              Copy
+                            </motion.button>
+                          </div>
+                        )}
                       </div>
                       {msg.className === "user-message" && (
                         <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold ml-2 mt-1">
@@ -250,7 +301,6 @@ const LearnWithoutLimitsAI = () => {
                 )}
               </div>
 
-              {/* Input Section */}
               <div className={`p-4 sm:p-6 ${isDarkMode ? "bg-gray-800 border-t border-gray-700" : "bg-white border-t border-gray-200"}`}>
                 <div className="flex items-center space-x-2 sm:space-x-4">
                   <motion.textarea

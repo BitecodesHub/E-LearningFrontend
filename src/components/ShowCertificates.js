@@ -4,17 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { QRCodeCanvas } from "qrcode.react";
-import { FiDownload, FiAward, FiCalendar, FiUser, FiHash } from "react-icons/fi";
+import { FiDownload, FiAward, FiCalendar, FiHash } from "react-icons/fi";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { 
   SiPython, SiCplusplus, SiMysql, SiMongodb, SiRust, 
-  SiReact, SiJavascript, SiHtml5, SiCss3, SiNodedotjs,
-  SiPhp, SiAngular, SiVuedotjs, SiDjango, SiFlask,
-  SiTensorflow, SiDocker, SiKubernetes
+  SiReact, SiJavascript, SiHtml5,SiNodedotjs,
+  SiPhp, SiAngular, SiVuedotjs
 } from "react-icons/si";
 // import { SiAmazon } from "react-icons/si";
 import { DiJava } from "react-icons/di";
-import { BsCodeSquare, BsStars, BsShield } from "react-icons/bs";
+import { BsCodeSquare,  BsShield } from "react-icons/bs";
 import { FaGraduationCap, FaMedal } from "react-icons/fa";
 import confetti from "canvas-confetti";
 
