@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LearnWithoutLimitsAI = () => {
-  const [chatHistory, setChatHistory] = useState([]); // State to store chat history
-
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isStopped, setIsStopped] = useState(false);
   const [message, setMessage] = useState("");
@@ -40,9 +38,6 @@ const LearnWithoutLimitsAI = () => {
   const toggleMinimize = () => setMinimized((prev) => !prev);
 
   const appendMessage = (text, className, code = null) => {
-    // Save message to chat history
-    setChatHistory((prev) => [...prev, { text, className, code }]);
-
     chatHistoryRef.current.push({ text, className, id: Date.now(), code });
     setChatMessages([...chatHistoryRef.current.slice(-50)]);
   };
@@ -75,9 +70,6 @@ const LearnWithoutLimitsAI = () => {
   };
 
   const generate = async () => {
-    // Save the current message to local storage
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-
     if (!message.trim()) return;
     
     setIsStopped(false);
@@ -170,9 +162,6 @@ const LearnWithoutLimitsAI = () => {
   };
 
   const stopGeneration = () => {
-    // Save the current message to local storage
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-
     if (controllerRef.current) {
       controllerRef.current.abort();
       setIsStopped(true);
@@ -200,17 +189,7 @@ const LearnWithoutLimitsAI = () => {
     exit: { opacity: 0, y: -20, transition: { duration: 0.3 } }
   };
 
-  return ( 
-    <div>
-      <h2>Chat History</h2>
-      <ul>
-        {chatHistory.map((msg, index) => (
-          <li key={index} className={msg.className}>
-            {msg.text}
-          </li>
-        ))}
-      </ul>
-
+  return (
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
@@ -401,7 +380,6 @@ const LearnWithoutLimitsAI = () => {
         </AnimatePresence>
       </motion.div>
     </motion.div>
-    </div>
   );
 };
 
