@@ -2,48 +2,22 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LearnWithoutLimitsAI = () => {
-  // Load theme preference from localStorage or default to dark mode
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("lwl-theme");
-    return savedTheme ? savedTheme === "dark" : true;
-  });
-  
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isStopped, setIsStopped] = useState(false);
   const [message, setMessage] = useState("");
-  // Load chat history from localStorage or start with empty array
-  const [chatMessages, setChatMessages] = useState(() => {
-    const savedMessages = localStorage.getItem("lwl-chat-history");
-    return savedMessages ? JSON.parse(savedMessages) : [];
-  });
-  
+  const [chatMessages, setChatMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef(null);
   const controllerRef = useRef(null);
-  const chatHistoryRef = useRef(null);
+  const chatHistoryRef = useRef([]);
   const [minimized, setMinimized] = useState(false);
-  
-  // Initialize chatHistoryRef with loaded messages
+
   useEffect(() => {
-    chatHistoryRef.current = [...chatMessages];
-    
-    // Only show welcome message if no chat history exists
-    if (chatMessages.length === 0) {
-      const welcomeMessage = "👋 Welcome to Learn Without Limits AI! I'm here to help you master any subject. What would you like to learn today?";
-      setTimeout(() => {
-        appendMessage(welcomeMessage, "ai-message");
-      }, 500);
-    }
+    const welcomeMessage = "👋 Welcome to Learn Without Limits AI! I'm here to help you master any subject. What would you like to learn today?";
+    setTimeout(() => {
+      appendMessage(welcomeMessage, "ai-message");
+    }, 500);
   }, []);
-
-  // Save chat history to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("lwl-chat-history", JSON.stringify(chatMessages));
-  }, [chatMessages]);
-
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("lwl-theme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -64,59 +38,18 @@ const LearnWithoutLimitsAI = () => {
   const toggleMinimize = () => setMinimized((prev) => !prev);
 
   const appendMessage = (text, className, code = null) => {
-    // Use Date.now() + random number to ensure unique IDs
-    const newMessage = { text, className, id: Date.now() + Math.random(), code };
-    chatHistoryRef.current = [...(chatHistoryRef.current || []), newMessage];
+    chatHistoryRef.current.push({ text, className, id: Date.now(), code });
     setChatMessages([...chatHistoryRef.current.slice(-50)]);
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    // Show copy notification - you could add a state for this
-    alert("Code copied to clipboard!");
   };
 
-  const clearHistory = () => {
-    if (window.confirm("Are you sure you want to clear your chat history?")) {
-      chatHistoryRef.current = [];
-      setChatMessages([]);
-      localStorage.removeItem("lwl-chat-history");
-      
-      // Show welcome message again
-      const welcomeMessage = "👋 Welcome to Learn Without Limits AI! I'm here to help you master any subject. What would you like to learn today?";
-      setTimeout(() => {
-        appendMessage(welcomeMessage, "ai-message");
-      }, 500);
-    }
-  };
-
-  // Improved code extraction - handle multiple languages and formats
   const extractCodeFromText = (text) => {
-    // More robust code pattern detection
-    const codeBlockRegex = /```([a-z]*)\n([\s\S]*?)```/g;
-    const matches = [...text.matchAll(codeBlockRegex)];
-    
-    if (matches.length > 0) {
-      let remainingText = text;
-      const extractedCode = matches.map(match => {
-        const [fullMatch, language, code] = match;
-        remainingText = remainingText.replace(fullMatch, '');
-        return { language: language || 'plaintext', code: code.trim() };
-      }).join('\n\n');
-      
-      return { 
-        code: extractedCode || null, 
-        text: remainingText.trim() 
-      };
-    }
-    
-    // Fallback patterns for code without markdown blocks
     const codePatterns = [
       /public\s+class\s+\w+\s*{[^}]*}/gs,
       /public\s+static\s+void\s+main\s*\([^)]*\)\s*{[^}]*}/gs,
-      /function\s+\w+\s*\([^)]*\)\s*{[^}]*}/gs,
-      /const\s+\w+\s*=\s*\([^)]*\)\s*=>\s*{[^}]*}/gs,
-      /import\s+[\s\S]*?from\s+['"][^'"]+['"]/g,
       /(System\.(out|err)\.(print|println)\("[^"]*"\);)/g
     ];
     
@@ -124,9 +57,9 @@ const LearnWithoutLimitsAI = () => {
     let remainingText = text;
     
     codePatterns.forEach(pattern => {
-      const patternMatches = text.match(pattern);
-      if (patternMatches) {
-        patternMatches.forEach(match => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
           code += match + "\n";
           remainingText = remainingText.replace(match, '');
         });
@@ -163,13 +96,11 @@ const LearnWithoutLimitsAI = () => {
       let tempText = "";
       let codeBlock = "";
       let isInCodeBlock = false;
-      let codeLanguage = "";
     
       while (true) {
         const { done, value } = await reader.read();
         if (done || isStopped) {
-          // Final processing of the message
-          const { code, text } = extractCodeFromText(tempText + (isInCodeBlock ? "```" + codeLanguage + "\n" + codeBlock + "```" : ""));
+          const { code, text } = extractCodeFromText(tempText + codeBlock);
           setChatMessages((prev) => {
             const updatedMessages = [...prev];
             updatedMessages[updatedMessages.length - 1].text = text;
@@ -186,25 +117,16 @@ const LearnWithoutLimitsAI = () => {
               const json = JSON.parse(line.replace("data: ", "").trim());
               if (json.response) {
                 const text = json.response;
-                
-                // Improved code block detection
                 if (text.includes("```")) {
-                  if (!isInCodeBlock) {
-                    isInCodeBlock = true;
-                    // Try to extract language if specified
-                    const langMatch = text.match(/```([a-z]*)/);
-                    codeLanguage = langMatch && langMatch[1] ? langMatch[1] : "";
-                  } else {
-                    isInCodeBlock = false;
+                  isInCodeBlock = !isInCodeBlock;
+                  if (!isInCodeBlock && codeBlock) {
                     setChatMessages((prev) => {
                       const updatedMessages = [...prev];
                       updatedMessages[updatedMessages.length - 1].code = codeBlock;
                       updatedMessages[updatedMessages.length - 1].text = tempText;
-                      updatedMessages[updatedMessages.length - 1].codeLanguage = codeLanguage;
                       return updatedMessages;
                     });
                     codeBlock = "";
-                    codeLanguage = "";
                   }
                 } else if (isInCodeBlock) {
                   codeBlock += text + "\n";
@@ -221,10 +143,7 @@ const LearnWithoutLimitsAI = () => {
         setChatMessages((prev) => {
           const updatedMessages = [...prev];
           updatedMessages[updatedMessages.length - 1].text = tempText;
-          if (codeBlock) {
-            updatedMessages[updatedMessages.length - 1].code = codeBlock;
-            updatedMessages[updatedMessages.length - 1].codeLanguage = codeLanguage;
-          }
+          if (codeBlock) updatedMessages[updatedMessages.length - 1].code = codeBlock;
           return updatedMessages;
         });
       }
@@ -304,22 +223,8 @@ const LearnWithoutLimitsAI = () => {
             <motion.button 
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={clearHistory} 
-              className={`p-2 sm:p-3 rounded-full transition ${
-                isDarkMode ? "bg-gray-700 text-red-300 hover:bg-red-800" : "bg-gray-200 text-red-600 hover:bg-red-100"
-              }`}
-              aria-label="Clear history"
-              title="Clear chat history"
-            >
-              🗑️
-            </motion.button>
-            <motion.button 
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
               onClick={toggleTheme} 
-              className={`p-2 sm:p-3 rounded-full transition ${
-                isDarkMode ? "bg-gray-700 text-amber-300" : "bg-gray-200 text-blue-600"
-              }`}
+              className={`p-2 sm:p-3 rounded-full transition ${isDarkMode ? "bg-gray-700 text-amber-300" : "bg-gray-200 text-blue-600"}`}
               aria-label="Toggle theme"
             >
               {isDarkMode ? "🌙" : "☀️"}
@@ -328,9 +233,7 @@ const LearnWithoutLimitsAI = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleMinimize} 
-              className={`p-2 sm:p-3 rounded-full transition ${
-                isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
-              }`}
+              className={`p-2 sm:p-3 rounded-full transition ${isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"}`}
               aria-label="Minimize or expand"
             >
               {minimized ? "🔼" : "🔽"}
@@ -376,23 +279,16 @@ const LearnWithoutLimitsAI = () => {
                           <div className="whitespace-pre-wrap">{msg.text}</div>
                         </div>
                         {msg.code && (
-                          <div className={`mt-2 p-3 rounded-xl ${isDarkMode ? "bg-gray-800" : "bg-gray-100"} relative overflow-hidden`}>
-                            <div className={`absolute top-0 left-0 right-0 h-8 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"} flex items-center px-3`}>
-                              <span className="text-xs font-mono">
-                                {msg.codeLanguage ? msg.codeLanguage : "code"}
-                              </span>
-                            </div>
-                            <pre className="mt-8 text-sm overflow-x-auto p-2 font-mono">
-                              <code className={`${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
-                                {msg.code}
-                              </code>
+                          <div className={`mt-2 p-3 rounded-xl ${isDarkMode ? "bg-gray-700" : "bg-gray-100"} relative`}>
+                            <pre className="text-sm overflow-x-auto">
+                              <code>{msg.code}</code>
                             </pre>
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => copyToClipboard(msg.code)}
-                              className={`absolute top-1 right-2 px-2 py-0.5 text-xs rounded ${
-                                isDarkMode ? "bg-gray-600 text-gray-200 hover:bg-gray-500" : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+                              className={`absolute top-2 right-2 px-2 py-1 text-xs rounded ${
+                                isDarkMode ? "bg-gray-600 text-gray-200" : "bg-gray-200 text-gray-800"
                               }`}
                             >
                               Copy
