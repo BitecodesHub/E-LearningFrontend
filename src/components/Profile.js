@@ -29,6 +29,10 @@ export const Profile = () => {
             userState: response.data.state,
             userFirstName: response.data.name,
             userProfileUrl: response.data.profileurl,
+            bio: response.data.bio,
+            timezone: response.data.timezone,
+            availability: response.data.availability,
+            skills: response.data.skills,
           });
         }
       } catch (error) {
@@ -59,7 +63,7 @@ export const Profile = () => {
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
       <div className="flex justify-center items-center min-h-screen">
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-6">
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-6 my-12">
           <div className="space-y-6">
             <div className="flex flex-col items-center">
               <div className="relative">
@@ -76,7 +80,7 @@ export const Profile = () => {
             <div className="space-y-4 text-left">
               <div>
                 <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Full Name
+                  <b>Full Name</b>
                 </label>
                 <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
                   {userData.userFirstName}
@@ -116,6 +120,44 @@ export const Profile = () => {
                 </label>
                 <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
                   {userData.userState}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Bio
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.bio || "Add Bio by Updating Profile"}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Timezone
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.timezone || "Add Timezone by Updating Profile"}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Availability
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.availability || "Add Availability by Updating Profile"}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Skills
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.skills && userData.skills.length > 0
+                    ? userData.skills.map((skill) => skill.name).join(", ")
+                    : "Add Skills by Updating Profile"}
                 </p>
               </div>
             </div>

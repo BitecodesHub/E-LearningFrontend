@@ -31,6 +31,8 @@ import { SocialMedia } from "./components/SocialMedia";
 import LegalTermsPage from "./components/LegalTermsPage";
 import AI from "./components/AI";
 import OnlineCompiler from "./components/Compiler";
+import CommunityPage from "./components/CommunityPage";
+import ChatPage from "./components/Chatpage";
 
 function App() {
   return (
@@ -40,6 +42,9 @@ function App() {
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/updateprofile" element={<UpdateProfile />} />
+          <Route path="/chat/:userId" element={<ChatPage />} />
           <Route path="/login" element={<LoginSignup />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/courses" element={<Courses />} />

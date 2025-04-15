@@ -538,7 +538,7 @@ export const HomePage = () => {
           <div className="inline-flex group">
             <button
               className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all duration-200 flex items-center justify-center"
-              onClick={() => navigate("/find-buddy")}
+              onClick={() => navigate("/community")}
             >
               <FaUsers className="mr-2" />
               <span>Find a Buddy</span>
