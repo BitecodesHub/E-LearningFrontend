@@ -33,6 +33,7 @@ import AI from "./components/AI";
 import OnlineCompiler from "./components/Compiler";
 import CommunityPage from "./components/CommunityPage";
 import ChatPage from "./components/Chatpage";
+import AdminUserPanel from "./components/AdminUserPanel";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
 
           <Route path="/course/:courseId/exam" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />
         <Route path="/admincourses" element={<ProtectedRoute><AdminCoursePanel /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute><AdminUserPanel /></ProtectedRoute>} />
         <Route path="/certificates" element={<ProtectedRoute><ShowCertificates /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
         <Route path="/addcourse" element={<ProtectedRoute><AddCourse /></ProtectedRoute>} />

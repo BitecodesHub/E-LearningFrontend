@@ -48,30 +48,31 @@ const draculaTheme = createTheme({
 const githubLightTheme = createTheme({
   theme: 'light',
   settings: {
-    background: '#ffffff',
-    foreground: '#1e1e2e',
-    caret: '#1e1e2e',
-    selection: '#b4d5fe',
-    selectionMatch: '#b4d5fe',
-    lineHighlight: '#f5f5f5',
-    gutterBackground: '#ffffff',
-    gutterForeground: '#6e7781',
+    background: '#f8fafc',
+    foreground: '#24292e',
+    caret: '#3b82f6',
+    selection: '#dbeafe',
+    selectionMatch: '#dbeafe',
+    lineHighlight: '#f1f5f9',
+    gutterBackground: '#f8fafc',
+    gutterForeground: '#6b7280',
+    gutterBorder: 'transparent',
   },
   styles: [
-    { tag: t.comment, color: '#8b949e' },
-    { tag: t.variableName, color: '#1e1e2e' },
-    { tag: [t.string, t.special(t.brace)], color: '#2f81f7' },
-    { tag: t.number, color: '#d73a49' },
-    { tag: t.bool, color: '#d73a49' },
-    { tag: t.null, color: '#d73a49' },
-    { tag: t.keyword, color: '#d73a49' },
-    { tag: t.operator, color: '#d73a49' },
-    { tag: t.className, color: '#6f42c1' },
-    { tag: t.definition(t.typeName), color: '#6f42c1' },
-    { tag: t.typeName, color: '#6f42c1' },
-    { tag: t.angleBracket, color: '#d73a49' },
-    { tag: t.tagName, color: '#22863a' },
-    { tag: t.attributeName, color: '#6f42c1' },
+    { tag: t.comment, color: '#6b7280', fontStyle: 'italic' },
+    { tag: t.variableName, color: '#1f2937' },
+    { tag: [t.string, t.special(t.brace)], color: '#15803d' },
+    { tag: t.number, color: '#b91c1c' },
+    { tag: t.bool, color: '#b91c1c' },
+    { tag: t.null, color: '#b91c1c' },
+    { tag: t.keyword, color: '#7c3aed' },
+    { tag: t.operator, color: '#1f2937' },
+    { tag: t.className, color: '#b91c1c' },
+    { tag: t.definition(t.typeName), color: '#0369a1' },
+    { tag: t.typeName, color: '#0369a1' },
+    { tag: t.angleBracket, color: '#6b7280' },
+    { tag: t.tagName, color: '#15803d' },
+    { tag: t.attributeName, color: '#7c3aed' },
   ],
 });
 
@@ -328,7 +329,7 @@ export default function CodingPlatform() {
 
       <div className="flex flex-1 flex-col md:flex-row">
         {/* Left Sidebar */}
-        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-700/20 backdrop-blur-lg bg-gray-800/20 flex flex-col transition-all duration-300 ${isLeftSidebarOpen ? 'block' : 'hidden md:block'}`}>
+        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-700/20 backdrop-blur-lg ${theme === 'dark' ? 'bg-gray-800/20' : 'bg-gray-50'} flex flex-col transition-all duration-300 ${isLeftSidebarOpen ? 'block' : 'hidden md:block'}`}>
           <div className="p-4 md:p-6 border-b border-gray-700/20 hidden md:block">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
               <Code className="mr-2 h-6 w-6" /> Learn Without Limits
@@ -367,14 +368,14 @@ export default function CodingPlatform() {
                       <div
                         key={question.id}
                         onClick={() => loadPracticeQuestion(question)}
-                        className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30 hover:bg-gray-600/30' : 'bg-gray-200/30 hover:bg-gray-300/30'} cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-gray-700/10 touch-manipulation`}
+                        className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30 hover:bg-gray-600/30' : 'bg-gray-100 hover:bg-gray-200'} cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-lg border ${theme === 'dark' ? 'border-gray-700/10' : 'border-gray-300'} touch-manipulation`}
                       >
-                        <div className="text-sm font-medium text-indigo-300">{question.title}</div>
-                        <div className="text-xs text-gray-400">{question.difficulty}</div>
-                        <div className="text-xs text-gray-500 truncate mt-1">{question.description}</div>
+                        <div className={`text-sm font-medium ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>{question.title}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{question.difficulty}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'} truncate mt-1`}>{question.description}</div>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           {question.tags.map(tag => (
-                            <span key={tag} className="text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full">{tag}</span>
+                            <span key={tag} className={`text-xs px-2 py-0.5 ${theme === 'dark' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-600'} rounded-full`}>{tag}</span>
                           ))}
                         </div>
                       </div>
@@ -476,13 +477,13 @@ export default function CodingPlatform() {
                 </button>
                 <button
                   onClick={copyCode}
-                  className="flex items-center px-3 py-2 bg-gray-600/50 hover:bg-gray-500/50 text-white rounded-lg transition-all duration-300 text-sm shadow-md w-full md:w-auto touch-manipulation"
+                  className={`flex items-center px-3 py-2 ${theme === 'dark' ? 'bg-gray-600/50 hover:bg-gray-500/50' : 'bg-gray-200 hover:bg-gray-300'} ${theme === 'dark' ? 'text-white' : 'text-gray-900'} rounded-lg transition-all duration-300 text-sm shadow-md w-full md:w-auto touch-manipulation`}
                 >
                   <Copy className="h-4 w-4" />
                 </button>
                 <button
                   onClick={saveCode}
-                  className="flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-300 text-sm shadow-md w-full md:w-auto touch-manipulation"
+                  className={`flex items-center px-3 py-2 ${theme === 'dark' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-400 hover:bg-blue-500'} text-white rounded-lg transition-all duration-300 text-sm shadow-md w-full md:w-auto touch-manipulation`}
                 >
                   <Save className="h-4 w-4" />
                 </button>
@@ -548,7 +549,7 @@ export default function CodingPlatform() {
                       <ExternalLink className="h-3 md:h-4 w-3 md:w-4 mr-2 text-indigo-400" /> Output Console
                     </h3>
                   </div>
-                  <pre className={`font-mono text-xs md:text-sm ${theme === 'dark' ? 'text-gray-300 bg-gray-850/30' : 'text-gray-700 bg-gray-50/30'} p-4 overflow-auto flex-1 overscroll-contain`}>
+                  <pre className={`font-mono text-xs md:text-sm ${theme === 'dark' ? 'text-gray-300 bg-gray-850/30' : 'text-gray-700 bg-gray-50'} p-4 overflow-auto flex-1 overscroll-contain`}>
                     {loading ? '⏳ Processing...' : output || "// Output will appear here"}
                   </pre>
                 </div>
@@ -558,20 +559,20 @@ export default function CodingPlatform() {
         </div>
 
         {/* Right Sidebar */}
-        <div className={`w-full md:w-80 flex-shrink-0 border-l border-gray-700/20 backdrop-blur-lg bg-gray-800/20 flex flex-col transition-all duration-300 ${isRightSidebarOpen ? 'block' : 'hidden md:block'}`}>
+        <div className={`w-full md:w-80 flex-shrink-0 border-l border-gray-700/20 backdrop-blur-lg ${theme === 'dark' ? 'bg-gray-800/20' : 'bg-gray-50'} flex flex-col transition-all duration-300 ${isRightSidebarOpen ? 'block' : 'hidden md:block'}`}>
           <div className="p-4 md:p-6 border-b border-gray-700/20">
-            <h3 className="text-base md:text-lg font-semibold flex items-center text-indigo-300">
+            <h3 className={`text-base md:text-lg font-semibold flex items-center ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-900'}`}>
               <Users className="h-4 md:h-5 w-4 md:w-5 mr-2 text-indigo-400" /> Community Hub
             </h3>
           </div>
           <div className="p-4 md:p-6 flex-1 overflow-y-auto space-y-6 overscroll-contain">
             {/* Saved Snippets */}
             <div>
-              <h4 className="text-xs md:text-sm font-semibold mb-3 flex items-center text-indigo-300">
+              <h4 className={`text-xs md:text-sm font-semibold mb-3 flex items-center ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-900'}`}>
                 <CheckCircle className="h-3 md:h-4 w-3 md:w-4 mr-2 text-indigo-400" /> Saved Snippets
               </h4>
               {savedCodes.length === 0 ? (
-                <div className={`text-xs md:text-sm italic ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`text-xs md:text-sm italic ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   No saved snippets yet.
                 </div>
               ) : (
@@ -580,10 +581,10 @@ export default function CodingPlatform() {
                     <div
                       key={code.id}
                       onClick={() => loadSavedCode(code)}
-                      className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30 hover:bg-gray-600/30' : 'bg-gray-200/30 hover:bg-gray-300/30'} cursor-pointer transition-all duration-300 group relative border border-gray-700/10 touch-manipulation`}
+                      className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30 hover:bg-gray-600/30' : 'bg-gray-100 hover:bg-gray-200'} cursor-pointer transition-all duration-300 group relative border ${theme === 'dark' ? 'border-gray-700/10' : 'border-gray-300'} touch-manipulation`}
                     >
-                      <div className={`text-xs md:text-sm font-medium text-indigo-300 truncate`}>{code.name}</div>
-                      <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <div className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'} truncate`}>{code.name}</div>
+                      <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                         {languages[code.language]?.label || code.language}
                       </div>
                       <button
@@ -600,41 +601,41 @@ export default function CodingPlatform() {
 
             {/* Community Feed */}
             <div>
-              <h4 className="text-xs md:text-sm font-semibold mb-3 flex items-center text-indigo-300">
+              <h4 className={`text-xs md:text-sm font-semibold mb-3 flex items-center ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-900'}`}>
                 <Star className="h-3 md:h-4 w-3 md:w-4 mr-2 text-indigo-400" /> Community Snippets
               </h4>
               <div className="space-y-3">
-                <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-200/30'} border border-gray-700/10`}>
-                  <div className="text-xs md:text-sm font-medium text-indigo-300">Quick Sort in Python</div>
-                  <div className="text-xs text-gray-400">by CodeMaster</div>
+                <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-100'} border ${theme === 'dark' ? 'border-gray-700/10' : 'border-gray-300'}`}>
+                  <div className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>Quick Sort in Python</div>
+                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>by CodeMaster</div>
                 </div>
-                <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-200/30'} border border-gray-700/10`}>
-                  <div className="text-xs md:text-sm font-medium text-indigo-300">React Hooks Example</div>
-                  <div className="text-xs text-gray-400">by DevGuru</div>
+                <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-gray-700/30' : 'bg-gray-100'} border ${theme === 'dark' ? 'border-gray-700/10' : 'border-gray-300'}`}>
+                  <div className={`text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>React Hooks Example</div>
+                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>by DevGuru</div>
                 </div>
               </div>
             </div>
 
             {/* Leaderboard */}
             <div>
-              <h4 className="text-xs md:text-sm font-semibold mb-3 flex items-center text-indigo-300">
+              <h4 className={`text-xs md:text-sm font-semibold mb-3 flex items-center ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-900'}`}>
                 <Trophy className="h-3 md:h-4 w-3 md:w-4 mr-2 text-indigo-400" /> Leaderboard
               </h4>
               <div className="space-y-3">
-                <div className="flex items-center p-3 rounded-xl bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/10">
-                  <span className="text-xs md:text-sm font-medium mr-2 text-yellow-300">1.</span>
-                  <span className="text-xs md:text-sm text-indigo-300">CodeNinja</span>
-                  <span className="text-xs md:text-sm ml-auto text-yellow-300">1200 pts</span>
+                <div className={`flex items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20' : 'bg-yellow-100'} border ${theme === 'dark' ? 'border-yellow-400/10' : 'border-gray-300'}`}>
+                  <span className={`text-xs md:text-sm font-medium mr-2 ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-800'}`}>1.</span>
+                  <span className={`text-xs md:text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>Ismail</span>
+                  <span className={`text-xs md:text-sm ml-auto ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-800'}`}>1200 pts</span>
                 </div>
-                <div className="flex items-center p-3 rounded-xl bg-gradient-to-r from-gray-400/20 to-gray-300/20 border border-gray-400/10">
-                  <span className="text-xs md:text-sm font-medium mr-2 text-gray-300">2.</span>
-                  <span className="text-xs md:text-sm text-indigo-300">ByteBlaster</span>
-                  <span className="text-xs md:text-sm ml-auto text-gray-300">1150 pts</span>
+                <div className={`flex items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/20' : 'bg-gray-100'} border ${theme === 'dark' ? 'border-gray-400/10' : 'border-gray-300'}`}>
+                  <span className={`text-xs md:text-sm font-medium mr-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>2.</span>
+                  <span className={`text-xs md:text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>Karan</span>
+                  <span className={`text-xs md:text-sm ml-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>1150 pts</span>
                 </div>
-                <div className="flex items-center p-3 rounded-xl bg-gradient-to-r from-gray-400/20 to-gray-300/20 border border-gray-400/10">
-                  <span className="text-xs md:text-sm font-medium mr-2 text-gray-300">3.</span>
-                  <span className="text-xs md:text-sm text-indigo-300">ScriptSorcerer</span>
-                  <span className="text-xs md:text-sm ml-auto text-gray-300">1100 pts</span>
+                <div className={`flex items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/20' : 'bg-gray-100'} border ${theme === 'dark' ? 'border-gray-400/10' : 'border-gray-300'}`}>
+                  <span className={`text-xs md:text-sm font-medium mr-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>3.</span>
+                  <span className={`text-xs md:text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-gray-800'}`}>Hamzah</span>
+                  <span className={`text-xs md:text-sm ml-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>1100 pts</span>
                 </div>
               </div>
             </div>
