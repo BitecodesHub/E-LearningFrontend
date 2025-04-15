@@ -14,18 +14,32 @@ const detectLanguage = (code) => {
   return "plaintext";
 };
 
+// Text-to-speech function
+const speakText = (text) => {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
 const LearnWithoutLimitsAI = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
   const [streamingState, setStreamingState] = useState({
     tempText: "",
     currentCodeBlock: "",
     codeLanguage: "",
     isInCodeBlock: false,
   });
+=======
+  const [partialResponse, setPartialResponse] = useState("");
+>>>>>>> 75d2798 (Updated AI by Ismail)
   const chatContainerRef = useRef(null);
   const controllerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -57,6 +71,7 @@ const LearnWithoutLimitsAI = () => {
   useEffect(() => {
     return () => {
       controllerRef.current?.abort();
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
@@ -129,7 +144,13 @@ const LearnWithoutLimitsAI = () => {
 
   const generate = async () => {
     if (!message.trim()) return;
+<<<<<<< HEAD
 
+=======
+    
+    setIsStopped(false);
+    setPartialResponse("");
+>>>>>>> 75d2798 (Updated AI by Ismail)
     const userMessage = message;
     setMessage("");
     setLoading(true);
@@ -160,6 +181,7 @@ const LearnWithoutLimitsAI = () => {
 
       while (true) {
         const { done, value } = await reader.read();
+<<<<<<< HEAD
         if (done) {
           const { code, text } = extractCodeFromText(
             streamingState.tempText +
@@ -168,6 +190,16 @@ const LearnWithoutLimitsAI = () => {
                 : "")
           );
           updateLastMessage(text, code);
+=======
+        if (done || isStopped) {
+          const { code, text } = extractCodeFromText(tempText + codeBlock);
+          setChatMessages((prev) => {
+            const updatedMessages = [...prev];
+            updatedMessages[updatedMessages.length - 1].text = isStopped ? partialResponse : text;
+            updatedMessages[updatedMessages.length - 1].code = code;
+            return updatedMessages;
+          });
+>>>>>>> 75d2798 (Updated AI by Ismail)
           break;
         }
 
@@ -203,6 +235,7 @@ const LearnWithoutLimitsAI = () => {
                     tempText += text;
                     updateLastMessage(tempText);
                   }
+<<<<<<< HEAD
 
                   return {
                     tempText,
@@ -211,6 +244,14 @@ const LearnWithoutLimitsAI = () => {
                     isInCodeBlock,
                   };
                 });
+=======
+                } else if (isInCodeBlock) {
+                  codeBlock += text + "\n";
+                } else {
+                  tempText += text;
+                }
+                setPartialResponse(tempText + (isInCodeBlock ? codeBlock : ""));
+>>>>>>> 75d2798 (Updated AI by Ismail)
               }
             } catch (e) {
               console.error("Error parsing JSON:", e);
@@ -220,7 +261,15 @@ const LearnWithoutLimitsAI = () => {
       }
     } catch (error) {
       if (error.name === "AbortError") {
+<<<<<<< HEAD
         updateLastMessage(streamingState.tempText + "\n[Stopped by user]");
+=======
+        setChatMessages((prev) => {
+          const updatedMessages = [...prev];
+          updatedMessages[updatedMessages.length - 1].text = partialResponse;
+          return updatedMessages;
+        });
+>>>>>>> 75d2798 (Updated AI by Ismail)
       } else {
         appendMessage("⚠️ Oops, something went wrong! Please try again.", "ai-message");
       }
@@ -264,6 +313,7 @@ const LearnWithoutLimitsAI = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
+<<<<<<< HEAD
       className={`min-h-screen flex justify-center items-center p-4 sm:p-6 ${
         isDarkMode
           ? "bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-900"
@@ -280,6 +330,44 @@ const LearnWithoutLimitsAI = () => {
             ? "bg-gray-800/80 shadow-indigo-500/30"
             : "bg-white/80 shadow-blue-300/50"
         } transition-all duration-500`}
+=======
+      className={`min-h-screen flex p-4 transition-colors duration-500 ${isDarkMode ? "bg-gradient-to-br from-gray-900 to-purple-900" : "bg-gradient-to-br from-blue-50 to-indigo-100"}`}
+    >
+      {/* Animated AI Model */}
+      <motion.div 
+        className="hidden lg:block w-64 mr-4"
+        animate={{
+          y: [0, -10, 0],
+          rotate: [0, 5, -5, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 4,
+          ease: "easeInOut"
+        }}
+      >
+        <div className="relative w-48 h-48">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+          <div className="absolute inset-2 rounded-full bg-gray-900 flex items-center justify-center">
+            <span className="text-4xl">🤖</span>
+          </div>
+          <motion.div 
+            className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-green-500 flex items-center justify-center"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            <span className="text-xl">✨</span>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className={`flex-grow max-w-4xl rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 ${
+          minimized ? "h-24" : "h-[90vh]"
+        } ${isDarkMode ? "bg-gray-800 shadow-purple-700/30" : "bg-white shadow-blue-300/50"}`}
+>>>>>>> 75d2798 (Updated AI by Ismail)
       >
         {/* Header */}
         <header
@@ -372,6 +460,7 @@ const LearnWithoutLimitsAI = () => {
                           AI
                         </div>
                       )}
+<<<<<<< HEAD
                       <div className="flex flex-col max-w-[80%] sm:max-w-[70%]">
                         {msg.text && (
                           <div
@@ -384,6 +473,45 @@ const LearnWithoutLimitsAI = () => {
                             } text-sm sm:text-base whitespace-pre-wrap`}
                           >
                             {msg.text}
+=======
+                      <div className="flex flex-col max-w-[85%]">
+                        <div 
+                          className={`p-3 sm:p-4 rounded-2xl relative ${
+                            msg.className === "user-message" 
+                              ? `bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20` 
+                              : `${isDarkMode ? "bg-gray-800 text-gray-200" : "bg-white text-gray-800"} shadow-md ${isDarkMode ? "shadow-gray-900/50" : "shadow-gray-200/50"}`
+                          }`}
+                        >
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                          {msg.className === "ai-message" && msg.text && (
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => speakText(msg.text)}
+                              className={`absolute top-2 right-2 px-2 py-1 text-xs rounded ${
+                                isDarkMode ? "bg-gray-600 text-gray-200" : "bg-gray-200 text-gray-800"
+                              }`}
+                            >
+                              🔊
+                            </motion.button>
+                          )}
+                        </div>
+                        {msg.code && (
+                          <div className={`mt-2 p-3 rounded-xl ${isDarkMode ? "bg-gray-700" : "bg-gray-100"} relative`}>
+                            <pre className="text-sm overflow-x-auto">
+                              <code>{msg.code}</code>
+                            </pre>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => copyToClipboard(msg.code)}
+                              className={`absolute top-2 right-2 px-2 py-1 text-xs rounded ${
+                                isDarkMode ? "bg-gray-600 text-gray-200" : "bg-gray-200 text-gray-800"
+                              }`}
+                            >
+                              Copy
+                            </motion.button>
+>>>>>>> 75d2798 (Updated AI by Ismail)
                           </div>
                         )}
                         {msg.code &&
