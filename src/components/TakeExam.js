@@ -246,35 +246,35 @@ export const TakeExam = () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex flex-col items-center justify-center p-4">
+    <div className="relative w-full min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 dark:from-gray-950 dark:to-indigo-950 flex flex-col items-center justify-center p-4">
       {/* Fullscreen Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-75 dark:bg-opacity-85 z-50 flex items-center justify-center">
           {/* Attempted to leave warning */}
           {attemptedToLeave && (
-            <div className="absolute top-0 left-0 right-0 bg-red-600 text-white py-2 px-4 text-center font-semibold">
+            <div className="absolute top-0 left-0 right-0 bg-red-600 dark:bg-red-700 text-white py-2 px-4 text-center font-semibold">
               Warning: Leaving this tab or window may result in losing your exam progress!
             </div>
           )}
           
           <div 
             ref={modalRef}
-            className="w-full max-w-5xl h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
+            className="w-full max-w-5xl h-[90vh] bg-white dark:bg-gray-800 rounded-xl shadow-2xl flex flex-col overflow-hidden"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-4 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700 p-4 flex justify-between items-center">
               <h1 id="modal-title" className="text-2xl font-bold text-white">Online Examination</h1>
               
               {/* Timer display */}
               <div className="flex items-center space-x-4">
                 {examStarted && (
-                  <div className="flex items-center bg-white bg-opacity-20 rounded-lg px-4 py-1">
+                  <div className="flex items-center bg-white dark:bg-gray-700 bg-opacity-20 rounded-lg px-4 py-1">
                     <span className="mr-2 text-white font-medium">Time Remaining:</span>
-                    <div className="px-3 py-1 bg-white rounded-md">
-                      <span className="text-lg font-semibold text-red-600" aria-live="polite" role="timer">
+                    <div className="px-3 py-1 bg-white dark:bg-gray-600 rounded-md">
+                      <span className="text-lg font-semibold text-red-600 dark:text-red-400" aria-live="polite" role="timer">
                         {formattedTime}
                       </span>
                     </div>
@@ -283,7 +283,7 @@ export const TakeExam = () => {
                 
                 <button
                   onClick={handleCloseAttempt}
-                  className="text-white bg-red-500 hover:bg-red-700 rounded-full p-1"
+                  className="text-white bg-red-500 dark:bg-red-600 hover:bg-red-700 dark:hover:bg-red-800 rounded-full p-1"
                   aria-label="Close exam"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -296,47 +296,47 @@ export const TakeExam = () => {
             
             {!examStarted ? (
               /* Exam Start Screen */
-              <div className="flex-grow flex flex-col items-center justify-center p-8 text-center">
-                <h2 className="text-3xl font-bold text-gray-800 mb-6">Examination Rules</h2>
-                <div className="max-w-2xl bg-gray-50 p-6 rounded-lg shadow-sm mb-8 text-left">
+              <div className="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gray-50 dark:bg-gray-900">
+                <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">Examination Rules</h2>
+                <div className="max-w-2xl bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8 text-left">
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <span className="mr-2 mt-1 text-green-600">✓</span>
-                      <span>You have <strong>40 minutes</strong> to complete the exam.</span>
+                      <span className="mr-2 mt-1 text-green-600 dark:text-green-400">✓</span>
+                      <span className="text-gray-800 dark:text-gray-300">You have <strong>40 minutes</strong> to complete the exam.</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2 mt-1 text-green-600">✓</span>
-                      <span>Do not leave the examination screen or switch tabs/applications.</span>
+                      <span className="mr-2 mt-1 text-green-600 dark:text-green-400">✓</span>
+                      <span className="text-gray-800 dark:text-gray-300">Do not leave the examination screen or switch tabs/applications.</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2 mt-1 text-green-600">✓</span>
-                      <span>All unanswered questions will be marked as option E (not answered).</span>
+                      <span className="mr-2 mt-1 text-green-600 dark:text-green-400">✓</span>
+                      <span className="text-gray-800 dark:text-gray-300">All unanswered questions will be marked as option E (not answered).</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2 mt-1 text-green-600">✓</span>
-                      <span>Use keyboard shortcuts: Arrow keys (navigation), Numbers 1-4 (options A-D).</span>
+                      <span className="mr-2 mt-1 text-green-600 dark:text-green-400">✓</span>
+                      <span className="text-gray-800 dark:text-gray-300">Use keyboard shortcuts: Arrow keys (navigation), Numbers 1-4 (options A-D).</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2 mt-1 text-green-600">✓</span>
-                      <span>The exam will automatically submit when the timer reaches zero.</span>
+                      <span className="mr-2 mt-1 text-green-600 dark:text-green-400">✓</span>
+                      <span className="text-gray-800 dark:text-gray-300">The exam will automatically submit when the timer reaches zero.</span>
                     </li>
                   </ul>
                 </div>
                 
                 <button
                   onClick={handleStartExam}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
                 >
                   Start Exam Now
                 </button>
               </div>
             ) : (
               /* Main Exam Content */
-              <div className="flex-grow flex flex-col p-4 overflow-auto">
+              <div className="flex-grow flex flex-col p-4 overflow-auto bg-gray-50 dark:bg-gray-900">
                 {/* Progress bar */}
-                <div className="w-full h-3 bg-gray-200 rounded-full mb-6">
+                <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full mb-6">
                   <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                     role="progressbar"
                     aria-valuenow={progress}
@@ -348,18 +348,18 @@ export const TakeExam = () => {
                 {/* Loading state */}
                 {loading ? (
                   <div className="flex-grow flex justify-center items-center">
-                    <div className="w-16 h-16 border-4 border-indigo-500 border-t-purple-500 rounded-full animate-spin" aria-label="Loading"></div>
+                    <div className="w-16 h-16 border-4 border-indigo-500 dark:border-indigo-400 border-t-purple-500 dark:border-t-purple-400 rounded-full animate-spin" aria-label="Loading"></div>
                   </div>
                 ) : error ? (
                   /* Error state */
                   <div className="flex-grow flex flex-col items-center justify-center">
-                    <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4 max-w-md text-center">
+                    <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-lg mb-4 max-w-md text-center">
                       <p className="text-lg font-medium mb-2">Error Loading Exam</p>
                       <p>{error}</p>
                     </div>
                     <button 
                       onClick={() => window.location.reload()}
-                      className="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-lg font-semibold"
+                      className="px-6 py-2 bg-blue-500 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg font-semibold"
                     >
                       Try Again
                     </button>
@@ -368,16 +368,16 @@ export const TakeExam = () => {
                   /* Submitting state */
                   <div className="flex-grow flex flex-col items-center justify-center">
                     <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 border-4 border-indigo-500 border-t-purple-500 rounded-full animate-spin mb-4" aria-label="Submitting"></div>
-                      <p className="text-xl font-semibold text-gray-700">Submitting your exam...</p>
-                      <p className="text-gray-500 mt-2">Please wait, don't close this window.</p>
+                      <div className="w-16 h-16 border-4 border-indigo-500 dark:border-indigo-400 border-t-purple-500 dark:border-t-purple-400 rounded-full animate-spin mb-4" aria-label="Submitting"></div>
+                      <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">Submitting your exam...</p>
+                      <p className="text-gray-500 dark:text-gray-400 mt-2">Please wait, don't close this window.</p>
                     </div>
                   </div>
                 ) : questions.length > 0 && currentQuestion ? (
                   <div className="flex-grow flex flex-col md:flex-row gap-6">
                     {/* Question navigation sidebar */}
-                    <div className="w-full md:w-56 flex-shrink-0 md:h-[calc(100vh-220px)] md:overflow-y-auto bg-gray-50 p-4 rounded-lg">
-                      <h2 className="text-lg font-semibold mb-3 text-gray-800">Question Navigator</h2>
+                    <div className="w-full md:w-56 flex-shrink-0 md:h-[calc(100vh-220px)] md:overflow-y-auto bg-white dark:bg-gray-800 p-4 rounded-lg">
+                      <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Question Navigator</h2>
                       <div className="grid grid-cols-5 md:grid-cols-3 gap-2 mb-4">
                         {questions.map((q, idx) => (
                           <button
@@ -385,10 +385,10 @@ export const TakeExam = () => {
                             onClick={() => goToQuestion(idx)}
                             className={`w-full h-10 flex items-center justify-center rounded-md font-medium transition-all
                               ${currentQuestionIndex === idx 
-                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white ring-2 ring-offset-2 ring-blue-300' 
+                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white ring-2 ring-offset-2 ring-blue-300 dark:ring-blue-500' 
                                 : answers[q.id] 
-                                  ? 'bg-green-100 text-green-800 border border-green-300' 
-                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-300 dark:border-green-600' 
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
                             aria-label={`Go to question ${idx + 1}${answers[q.id] ? ' (answered)' : ''}`}
                             aria-current={currentQuestionIndex === idx ? 'true' : 'false'}
                           >
@@ -398,20 +398,20 @@ export const TakeExam = () => {
                       </div>
                       
                       {/* Summary */}
-                      <div className="mt-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Exam Progress</h3>
+                      <div className="mt-4 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Exam Progress</h3>
                         <div className="space-y-2">
-                          <p className="text-sm flex justify-between">
+                          <p className="text-sm flex justify-between text-gray-800 dark:text-gray-300">
                             <span>Total Questions:</span>
                             <span className="font-medium">{questions.length}</span>
                           </p>
-                          <p className="text-sm flex justify-between">
+                          <p className="text-sm flex justify-between text-gray-800 dark:text-gray-300">
                             <span>Answered:</span>
-                            <span className="font-medium text-green-600">{Object.keys(answers).length}</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">{Object.keys(answers).length}</span>
                           </p>
-                          <p className="text-sm flex justify-between">
+                          <p className="text-sm flex justify-between text-gray-800 dark:text-gray-300">
                             <span>Remaining:</span>
-                            <span className="font-medium text-red-500">{questions.length - Object.keys(answers).length}</span>
+                            <span className="font-medium text-red-500 dark:text-red-400">{questions.length - Object.keys(answers).length}</span>
                           </p>
                         </div>
                       </div>
@@ -421,8 +421,8 @@ export const TakeExam = () => {
                         <button
                           className={`w-full py-3 text-white rounded-lg font-semibold transition-colors
                             ${Object.keys(answers).length === questions.length
-                              ? "bg-green-500 hover:bg-green-700"
-                              : "bg-blue-500 hover:bg-blue-700"}`}
+                              ? "bg-green-500 dark:bg-green-600 hover:bg-green-700 dark:hover:bg-green-800"
+                              : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-800"}`}
                           onClick={submitExam}
                         >
                           {Object.keys(answers).length === questions.length ? "Submit Exam" : `Submit (${questions.length - Object.keys(answers).length} unanswered)`}
@@ -432,18 +432,18 @@ export const TakeExam = () => {
                     
                     {/* Main question area */}
                     <div className="flex-grow flex flex-col">
-                      <div className="bg-white p-6 rounded-lg shadow-sm mb-4 flex-grow">
+                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-4 flex-grow">
                         <div className="flex items-center justify-between mb-6">
-                          <h2 className="text-lg font-medium text-gray-500">
+                          <h2 className="text-lg font-medium text-gray-500 dark:text-gray-400">
                             Question {currentQuestionIndex + 1} of {questions.length}
                           </h2>
                           <span className={`px-3 py-1 rounded-full text-sm font-medium
-                            ${isCurrentQuestionAnswered ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                            ${isCurrentQuestionAnswered ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400" : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"}`}>
                             {isCurrentQuestionAnswered ? "Answered" : "Not Answered"}
                           </span>
                         </div>
                         
-                        <h3 className="text-xl font-bold text-gray-800 mb-6">
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">
                           {currentQuestion.questionText}
                         </h3>
 
@@ -454,14 +454,14 @@ export const TakeExam = () => {
                               key={option}
                               className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all
                                 ${answers[currentQuestion.id] === option
-                                  ? "bg-blue-50 border-blue-500 text-blue-800 shadow-sm"
-                                  : "bg-white border-gray-200 hover:bg-gray-50"}`}
+                                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-800 dark:text-blue-300 shadow-sm"
+                                  : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300"}`}
                               htmlFor={`question-${currentQuestion.id}-option-${option}`}
                             >
                               <div className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 border-2
                                 ${answers[currentQuestion.id] === option
-                                  ? "bg-blue-500 border-blue-500 text-white"
-                                  : "border-gray-300"}`}>
+                                  ? "bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600 text-white"
+                                  : "border-gray-300 dark:border-gray-500"}`}>
                                 {answers[currentQuestion.id] === option && (
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -478,7 +478,7 @@ export const TakeExam = () => {
                                 className="sr-only"
                               />
                               <div>
-                                <span className="font-medium text-gray-800">{option}.</span> {currentQuestion[`option${option}`]}
+                                <span className="font-medium">{option}.</span> {currentQuestion[`option${option}`]}
                               </div>
                             </label>
                           ))}
@@ -490,8 +490,8 @@ export const TakeExam = () => {
                         <button
                           className={`px-6 py-3 rounded-lg font-semibold transition-all
                             ${currentQuestionIndex === 0 
-                              ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
-                              : "bg-gray-700 hover:bg-gray-900 text-white shadow hover:shadow-md"}`}
+                              ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed" 
+                              : "bg-gray-700 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white shadow hover:shadow-md"}`}
                           onClick={prevQuestion}
                           disabled={currentQuestionIndex === 0}
                           aria-label="Previous question"
@@ -505,8 +505,8 @@ export const TakeExam = () => {
                             <button
                               className={`px-8 py-3 text-white rounded-lg font-semibold transition-all shadow hover:shadow-md
                                 ${Object.keys(answers).length === questions.length
-                                  ? "bg-green-500 hover:bg-green-700"
-                                  : "bg-blue-500 hover:bg-blue-700"}`}
+                                  ? "bg-green-500 dark:bg-green-600 hover:bg-green-700 dark:hover:bg-green-800"
+                                  : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-800"}`}
                               onClick={submitExam}
                             >
                               {Object.keys(answers).length === questions.length ? "Submit Exam" : `Submit (${questions.length - Object.keys(answers).length} unanswered)`}
@@ -517,8 +517,8 @@ export const TakeExam = () => {
                         <button
                           className={`px-6 py-3 rounded-lg font-semibold transition-all shadow hover:shadow-md
                             ${currentQuestionIndex === questions.length - 1
-                              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              : "bg-blue-600 hover:bg-blue-800 text-white"}`}
+                              ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                              : "bg-blue-600 dark:bg-blue-700 hover:bg-blue-800 dark:hover:bg-blue-900 text-white"}`}
                           onClick={nextQuestion}
                           disabled={currentQuestionIndex === questions.length - 1}
                           aria-label="Next question"
@@ -530,18 +530,18 @@ export const TakeExam = () => {
                   </div>
                 ) : (
                   <div className="flex-grow flex items-center justify-center">
-                    <p className="text-center text-gray-600">No questions available for this exam.</p>
+                    <p className="text-center text-gray-600 dark:text-gray-400">No questions available for this exam.</p>
                   </div>
                 )}
                 
                 {/* Keyboard shortcuts help */}
                 {examStarted && !loading && !submitting && questions.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-center text-gray-500 text-sm">
-                      <div className="px-2 py-1 rounded bg-gray-100 mr-2">←→</div>
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+                      <div className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 mr-2">←→</div>
                       <span className="mr-4">Navigate between questions</span>
                       
-                      <div className="px-2 py-1 rounded bg-gray-100 mr-2">1-4</div>
+                      <div className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 mr-2">1-4</div>
                       <span>Select options A-D</span>
                     </div>
                   </div>
@@ -553,12 +553,12 @@ export const TakeExam = () => {
       )}
       
       {/* Background content (hidden when modal is open) */}
-      <div className={`w-full max-w-lg mx-auto bg-white rounded-xl shadow-lg p-8 ${isModalOpen ? 'blur-sm' : ''}`}>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Online Examination System</h1>
-        <p className="text-gray-600 text-center mb-8">Please wait while we prepare your examination...</p>
+      <div className={`w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 ${isModalOpen ? 'blur-sm' : ''}`}>
+        <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-6">Online Examination System</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-center mb-8">Please wait while we prepare your examination...</p>
         
         <div className="flex justify-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-blue-500 dark:border-blue-400 border-t-purple-500 dark:border-t-purple-400 rounded-full animate-spin"></div>
         </div>
       </div>
     </div>
