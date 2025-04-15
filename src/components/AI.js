@@ -24,7 +24,7 @@ const speakText = (text) => {
   }
 };
 
-const LearnWithoutLimitsAI = () => {
+export const LearnWithoutLimitsAI = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState("");
