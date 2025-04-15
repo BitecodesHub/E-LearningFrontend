@@ -139,19 +139,19 @@ export const UserAttempts = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 p-4 md:p-10"
+      className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 p-4 md:p-10"
     >
-      <div className="w-full max-w-6xl bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-10">
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-8 text-center">
+      <div className="w-full max-w-6xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-10">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 bg-clip-text text-transparent mb-8 text-center">
           My Exam History
         </h1>
 
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <label className="text-lg font-medium text-gray-700">Filter by Course:</label>
+          <label className="text-lg font-medium text-gray-700 dark:text-gray-300">Filter by Course:</label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
-            className="w-full md:w-72 px-4 py-3 border-2 border-purple-100 rounded-xl focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all cursor-pointer"
+            className="w-full md:w-72 px-4 py-3 border-2 border-purple-100 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-700 focus:border-purple-500 dark:focus:border-purple-400 transition-all cursor-pointer"
           >
             <option value="all">All Courses</option>
             {courses.map((course) => (
@@ -166,9 +166,9 @@ export const UserAttempts = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center p-8 rounded-xl bg-purple-50/50"
+            className="text-center p-8 rounded-xl bg-purple-50/50 dark:bg-purple-900/20"
           >
-            <p className="text-gray-500 text-lg">No attempts found for this course</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">No attempts found for this course</p>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -179,34 +179,36 @@ export const UserAttempts = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
                 whileHover={{ scale: 1.02 }}
-                className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl p-6 flex flex-col transition-all duration-300"
+                className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-6 flex flex-col transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-indigo-900/30 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300" />
                 <div className="relative z-10">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
                     {getCourseName(attempt.courseId)}
                   </h2>
-                  
+
                   <div className="flex items-center gap-2 mb-3">
-                    <TrophyIcon className="w-5 h-5 text-amber-500" />
-                    <span className={`text-sm font-medium ${
-                      attempt.score >= 70 ? 'text-green-600' : 'text-orange-600'
-                    }`}>
+                    <TrophyIcon className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                    <span
+                      className={`text-sm font-medium ${
+                        attempt.score >= 70 ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
+                      }`}
+                    >
                       {attempt.score}% Score
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 mb-4">
-                    <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-600">
+                    <CalendarDaysIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       {formatDate(attempt.attemptedAt)}
                     </span>
                   </div>
 
                   <div className="mt-4 w-full">
                     {hasCertificate(attempt.courseId) ? (
-                      <div className="flex items-center justify-center gap-2 bg-emerald-100/80 text-emerald-700 py-2.5 rounded-xl text-sm">
-                        <CheckBadgeIcon className="w-5 h-5" />
+                      <div className="flex items-center justify-center gap-2 bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 py-2.5 rounded-xl text-sm">
+                        <CheckBadgeIcon className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
                         Certificate Issued
                       </div>
                     ) : attempt.score >= 70 ? (
@@ -214,12 +216,12 @@ export const UserAttempts = () => {
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handlePayment(attempt)}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all"
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-700 dark:to-blue-700 text-white py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all"
                       >
                         Get Certificate - ₹49
                       </motion.button>
                     ) : (
-                      <div className="flex items-center justify-center gap-2 bg-rose-100/80 text-rose-700 py-2.5 rounded-xl text-sm">
+                      <div className="flex items-center justify-center gap-2 bg-rose-100/80 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 py-2.5 rounded-xl text-sm">
                         <span>Better luck next time!</span>
                       </div>
                     )}

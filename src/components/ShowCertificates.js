@@ -8,12 +8,11 @@ import { FiDownload, FiAward, FiCalendar, FiHash } from "react-icons/fi";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { 
   SiPython, SiCplusplus, SiMysql, SiMongodb, SiRust, 
-  SiReact, SiJavascript, SiHtml5,SiNodedotjs,
+  SiReact, SiJavascript, SiHtml5, SiNodedotjs,
   SiPhp, SiAngular, SiVuedotjs
 } from "react-icons/si";
-// import { SiAmazon } from "react-icons/si";
 import { DiJava } from "react-icons/di";
-import { BsCodeSquare,  BsShield } from "react-icons/bs";
+import { BsCodeSquare, BsShield } from "react-icons/bs";
 import { FaGraduationCap, FaMedal } from "react-icons/fa";
 import confetti from "canvas-confetti";
 
@@ -214,9 +213,9 @@ export const ShowCertificates = () => {
       });
 
   return (
-    <div className="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 min-h-screen p-4 md:p-8">
+    <div className="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 min-h-screen p-4 md:p-8">
       <motion.div
-        className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-5xl mx-auto"
+        className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-5xl mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -227,14 +226,14 @@ export const ShowCertificates = () => {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg"
+            className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-full flex items-center justify-center mb-4 shadow-lg"
           >
             <FiAward className="text-white text-4xl" />
           </motion.div>
-          <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 dark:text-gray-100 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 bg-clip-text text-transparent">
             Your Achievements
           </h1>
-          <p className="text-gray-600 mt-2 text-center max-w-lg">
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-center max-w-lg">
             Showcase your hard-earned certificates and share your accomplishments with the world.
           </p>
         </div>
@@ -248,8 +247,8 @@ export const ShowCertificates = () => {
                 whileTap={{ scale: 0.95 }}
                 className={`px-4 py-2 rounded-full transition-all ${
                   activeCategory === "all"
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-indigo-600 dark:bg-indigo-700 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
                 onClick={() => setActiveCategory("all")}
               >
@@ -263,8 +262,8 @@ export const ShowCertificates = () => {
                   whileTap={{ scale: 0.95 }}
                   className={`px-4 py-2 rounded-full transition-all ${
                     activeCategory === category.toLowerCase()
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-indigo-600 dark:bg-indigo-700 text-white shadow-md"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                   onClick={() => setActiveCategory(category.toLowerCase())}
                 >
@@ -280,9 +279,9 @@ export const ShowCertificates = () => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-              className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full mb-4"
+              className="w-16 h-16 border-4 border-indigo-200 dark:border-gray-600 border-t-indigo-600 dark:border-t-indigo-400 rounded-full mb-4"
             ></motion.div>
-            <p className="text-indigo-700 font-medium">Loading your achievements...</p>
+            <p className="text-indigo-700 dark:text-indigo-300 font-medium">Loading your achievements...</p>
           </div>
         ) : certificates.length > 0 ? (
           <>
@@ -297,34 +296,34 @@ export const ShowCertificates = () => {
                   {filteredCertificates.map((certificate) => (
                     <motion.div
                       key={certificate.id}
-                      className={`bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-all ${
-                        selectedCertificate?.id === certificate.id ? "ring-2 ring-indigo-500" : ""
+                      className={`bg-gradient-to-br from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/30 rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-all ${
+                        selectedCertificate?.id === certificate.id ? "ring-2 ring-indigo-500 dark:ring-indigo-400" : ""
                       }`}
                       onClick={() => handleCertificateClick(certificate)}
                       whileHover={{ y: -5 }}
                       layout
                     >
-                      <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                      <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700"></div>
                       <div className="p-6">
                         <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 bg-indigo-100 rounded-lg p-3 flex items-center justify-center">
+                          <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-3 flex items-center justify-center">
                             {getCourseIcon(certificate.courseId)}
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 capitalize">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 capitalize">
                               {getCourseName(certificate.courseId)}
                             </h3>
-                            <div className="flex items-center mt-2 text-gray-600">
-                              <FaMedal className="text-amber-500 mr-1" />
+                            <div className="flex items-center mt-2 text-gray-600 dark:text-gray-400">
+                              <FaMedal className="text-amber-500 dark:text-amber-400 mr-1" />
                               <span className="text-sm">Score: <span className="font-medium">{certificate.score}%</span></span>
                             </div>
-                            <div className="flex items-center mt-1 text-gray-600">
+                            <div className="flex items-center mt-1 text-gray-600 dark:text-gray-400">
                               <FiCalendar className="mr-1" />
                               <span className="text-sm">
                                 {new Date(certificate.issuedAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <span className="inline-block mt-3 text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">
+                            <span className="inline-block mt-3 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded-full">
                               {getCourseCategory(certificate.courseId)}
                             </span>
                           </div>
@@ -334,23 +333,23 @@ export const ShowCertificates = () => {
                   ))}
                 </motion.div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl">
-                  <p className="text-gray-600">No certificates found in this category.</p>
+                <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                  <p className="text-gray-600 dark:text-gray-400">No certificates found in this category.</p>
                 </div>
               )}
             </AnimatePresence>
           </>
         ) : (
           <motion.div
-            className="text-center py-12 bg-gray-50 rounded-xl"
+            className="text-center py-12 bg-gray-50 dark:bg-gray-700 rounded-xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiAward className="text-gray-400 text-4xl" />
+            <div className="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiAward className="text-gray-400 dark:text-gray-500 text-4xl" />
             </div>
-            <h3 className="text-xl font-medium text-gray-700 mb-2">No Certificates Yet</h3>
-            <p className="text-gray-600 max-w-md mx-auto">
+            <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No Certificates Yet</h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
               Complete a course and pass the final exam to earn your first certificate.
             </p>
           </motion.div>
@@ -364,16 +363,16 @@ export const ShowCertificates = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="mt-12 pt-8 border-t border-gray-100"
+              className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-700"
             >
               <div
                 ref={certificateRef}
-                className="certificate-container relative p-2 md:p-8 bg-white rounded-xl overflow-hidden"
+                className="certificate-container relative p-2 md:p-8 bg-white dark:bg-gray-800 rounded-xl overflow-hidden"
               >
                 {/* Certificate border decoration */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0 border-[15px] border-indigo-100 rounded-xl"></div>
-                  <div className="absolute inset-[15px] border-[2px] border-dashed border-indigo-300 rounded-xl"></div>
+                  <div className="absolute inset-0 border-[15px] border-indigo-100 dark:border-gray-700 rounded-xl"></div>
+                  <div className="absolute inset-[15px] border-[2px] border-dashed border-indigo-300 dark:border-gray-600 rounded-xl"></div>
                 </div>
                 
                 {/* Certificate Content */}
@@ -381,66 +380,66 @@ export const ShowCertificates = () => {
                   {/* Certificate Header */}
                   <div className="mb-6">
                     <div className="flex justify-center mb-3">
-                      <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 rounded-full flex items-center justify-center">
                         <FiAward className="text-white text-2xl" />
                       </div>
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-1">
+                    <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-1">
                       Certificate of Achievement
                     </h1>
-                    <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mb-3 rounded-full"></div>
-                    <p className="text-gray-600 italic">This certifies that</p>
+                    <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600 mx-auto mb-3 rounded-full"></div>
+                    <p className="text-gray-600 dark:text-gray-400 italic">This certifies that</p>
                   </div>
                   
                   {/* Recipient Name */}
-                  <h2 className="text-3xl md:text-4xl font-bold text-indigo-800 my-4 font-serif certificate-name">
+                  <h2 className="text-3xl md:text-4xl font-bold text-indigo-800 dark:text-indigo-300 my-4 font-serif certificate-name">
                     {userFirstName}
                   </h2>
                   
                   {/* Course Details */}
-                  <p className="text-lg text-gray-600 mt-4">has successfully completed the course</p>
+                  <p className="text-lg text-gray-600 dark:text-gray-400 mt-4">has successfully completed the course</p>
                   <div className="flex flex-col items-center justify-center mt-3 mb-6">
                     <div className="flex items-center justify-center my-2">
-                      <div className="bg-indigo-50 p-4 rounded-full">
+                      <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-full">
                         {getCourseIcon(selectedCertificate.courseId)}
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mt-2 capitalize">
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mt-2 capitalize">
                       {getCourseName(selectedCertificate.courseId)}
                     </h3>
-                    <span className="inline-block mt-2 text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                    <span className="inline-block mt-2 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-3 py-1 rounded-full">
                       {getCourseCategory(selectedCertificate.courseId)}
                     </span>
                   </div>
                   
                   {/* Certificate Details */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 max-w-2xl mx-auto">
-                    <div className="bg-indigo-50 rounded-lg p-3 flex flex-col items-center">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 flex flex-col items-center">
                       <div className="flex items-center justify-center mb-1">
-                        <FaMedal className="text-amber-500 mr-1" />
-                        <span className="text-sm font-medium text-gray-700">Score</span>
+                        <FaMedal className="text-amber-500 dark:text-amber-400 mr-1" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Score</span>
                       </div>
-                      <span className="font-bold text-lg text-indigo-800">
+                      <span className="font-bold text-lg text-indigo-800 dark:text-indigo-300">
                         {selectedCertificate.score}%
                       </span>
                     </div>
                     
-                    <div className="bg-indigo-50 rounded-lg p-3 flex flex-col items-center">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 flex flex-col items-center">
                       <div className="flex items-center justify-center mb-1">
-                        <FiCalendar className="text-indigo-600 mr-1" />
-                        <span className="text-sm font-medium text-gray-700">Issued On</span>
+                        <FiCalendar className="text-indigo-600 dark:text-indigo-400 mr-1" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Issued On</span>
                       </div>
-                      <span className="font-bold text-indigo-800">
+                      <span className="font-bold text-indigo-800 dark:text-indigo-300">
                         {new Date(selectedCertificate.issuedAt).toLocaleDateString()}
                       </span>
                     </div>
                     
-                    <div className="bg-indigo-50 rounded-lg p-3 flex flex-col items-center">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 flex flex-col items-center">
                       <div className="flex items-center justify-center mb-1">
-                        <FiHash className="text-indigo-600 mr-1" />
-                        <span className="text-sm font-medium text-gray-700">Credential ID</span>
+                        <FiHash className="text-indigo-600 dark:text-indigo-400 mr-1" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Credential ID</span>
                       </div>
-                      <span className="font-bold text-indigo-800 text-sm">
+                      <span className="font-bold text-indigo-800 dark:text-indigo-300 text-sm">
                         {selectedCertificate.credentialId.substring(0, 12)}
                       </span>
                     </div>
@@ -448,7 +447,7 @@ export const ShowCertificates = () => {
                   
                   {/* QR Code Section */}
                   <div className="mt-8 flex justify-center">
-                    <div className="bg-white p-3 rounded-xl shadow-md border border-gray-200">
+                    <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-600">
                       <QRCodeCanvas
                         value={`elearning.bitecodes.com/credential/${selectedCertificate.credentialId}`}
                         size={120}
@@ -457,12 +456,12 @@ export const ShowCertificates = () => {
                         level="H"
                         includeMargin={true}
                       />
-                      <p className="text-xs text-gray-600 mt-2 text-center font-medium">Scan to Verify</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center font-medium">Scan to Verify</p>
                     </div>
                   </div>
                   
                   {/* Certificate Footer */}
-                  <div className="mt-8 border-t border-gray-200 pt-4 text-sm text-gray-600">
+                  <div className="mt-8 border-t border-gray-200 dark:border-gray-600 pt-4 text-sm text-gray-600 dark:text-gray-400">
                     <p>This certificate verifies the completion of the online course as indicated above.</p>
                   </div>
                 </div>
@@ -477,7 +476,7 @@ export const ShowCertificates = () => {
               >
                 <button
                   onClick={handleDownloadPDF}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 text-white px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
                   disabled={loadingDownload}
                 >
                   {loadingDownload ? (

@@ -5,9 +5,10 @@ import axios from "axios";
 export const Profile = () => {
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
-  const apiUrl = process.env.REACT_APP_ENV === 'production'
-  ? process.env.REACT_APP_LIVE_API
-  : process.env.REACT_APP_LOCAL_API;
+  const apiUrl =
+    process.env.REACT_APP_ENV === "production"
+      ? process.env.REACT_APP_LIVE_API
+      : process.env.REACT_APP_LOCAL_API;
 
   const [userData, setUserData] = useState(null);
 
@@ -18,7 +19,7 @@ export const Profile = () => {
 
         // Fetch user data based on userId
         const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`);
-        
+
         if (response.data) {
           // Map response data to state
           setUserData({
@@ -49,68 +50,92 @@ export const Profile = () => {
 
   if (!userData) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-gray-600">Loading profile...</p>
+      <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
+        <p className="text-lg font-semibold text-gray-600 dark:text-gray-400">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
       <div className="flex justify-center items-center min-h-screen">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden p-6">
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-6">
           <div className="space-y-6">
             <div className="flex flex-col items-center">
               <div className="relative">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-200 shadow-lg">
-                  <img src={userData.userProfileUrl} alt="Profile" className="w-full h-full object-cover" />
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-200 dark:border-gray-600 shadow-lg">
+                  <img
+                    src={userData.userProfileUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 text-left">
               <div>
-                <label className="block text-lg font-medium mb-2">Full Name</label>
-                <p className="text-gray-700 text-lg font-semibold">{userData.userFirstName}</p>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Full Name
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.userFirstName}
+                </p>
               </div>
 
               <div>
-                <label className="block text-lg font-medium mb-2">Email Address</label>
-                <p className="text-gray-700 text-lg font-semibold">{userData.userEmail}</p>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Email Address
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.userEmail}
+                </p>
               </div>
 
               <div>
-                <label className="block text-lg font-medium mb-2">Phone Number</label>
-                <p className="text-gray-700 text-lg font-semibold">{userData.userPhonenum || "Add Number by Updating Profile"}</p>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Phone Number
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.userPhonenum || "Add Number by Updating Profile"}
+                </p>
               </div>
 
               <div>
-                <label className="block text-lg font-medium mb-2">Username</label>
-                <p className="text-gray-700 text-lg font-semibold">@{userData.username}</p>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  Username
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  @{userData.username}
+                </p>
               </div>
 
               <div>
-                <label className="block text-lg font-medium mb-2">State</label>
-                <p className="text-gray-700 text-lg font-semibold">{userData.userState}</p>
+                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+                  State
+                </label>
+                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                  {userData.userState}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <button 
-                onClick={handleUpdateProfile} 
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 active:bg-blue-800 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+              <button
+                onClick={handleUpdateProfile}
+                className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 active:bg-blue-800 dark:active:bg-blue-900 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
               >
                 Update Profile
               </button>
-              <button 
-                onClick={handleLogout} 
-                className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 active:bg-red-800 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+              <button
+                onClick={handleLogout}
+                className="flex-1 bg-red-600 dark:bg-red-700 text-white py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 active:bg-red-800 dark:active:bg-red-900 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
               >
                 Logout
               </button>
             </div>
           </div>
-        </div> 
+        </div>
       </div>
     </div>
   );
