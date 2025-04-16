@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, User, Award, Clock, LogOut } from "lucide-react";
+import { Menu, X, ChevronDown, User, Award, Clock, LogOut, BluetoothConnectedIcon, PersonStanding } from "lucide-react";
 
 export const Navbar = () => {
   const { logout, isAuthenticated, userFirstName } = useAuth();
@@ -123,7 +123,7 @@ export const Navbar = () => {
 
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
+                  <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
                     <div className="py-2">
                       <button
                         onClick={() => {
@@ -133,7 +133,7 @@ export const Navbar = () => {
                         }}
                         className="w-full text-left flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
                       >
-                        <User size={18} className="mr-3 text-indigo-500 dark:text-indigo-400" />
+                        <span class="material-symbols-outlined mr-3 text-indigo-500 dark:text-indigo-400">person</span>
                         <span>Profile</span>
                       </button>
                       <button
@@ -144,7 +144,7 @@ export const Navbar = () => {
                         }}
                         className="w-full text-left flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
                       >
-                        <Award size={18} className="mr-3 text-indigo-500 dark:text-indigo-400" />
+                        <span class="material-symbols-outlined mr-3 text-indigo-500 dark:text-indigo-400">license</span>
                         <span>My Certifications</span>
                       </button>
                       <button
@@ -155,8 +155,15 @@ export const Navbar = () => {
                         }}
                         className="w-full text-left flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
                       >
-                        <Clock size={18} className="mr-3 text-indigo-500 dark:text-indigo-400" />
+                        <span class="material-symbols-outlined mr-3 text-indigo-500 dark:text-indigo-400">history</span>
                         <span>Attempts</span>
+                      </button>
+                      <button
+                        onClick={() => handleNavigation("/connections")}
+                        className="w-full text-left flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-200"
+                      >
+                        <span class="material-symbols-outlined mr-3 text-indigo-500 dark:text-indigo-400">group</span>
+                        <span>Connections</span>
                       </button>
                       <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
                       <button
@@ -247,6 +254,13 @@ export const Navbar = () => {
               >
                 <Clock size={18} className="mr-3 text-indigo-500 dark:text-indigo-400" />
                 <span>Attempts</span>
+              </button>
+              <button
+                onClick={() => handleNavigation("/connections")}
+                className="w-full text-left flex items-center px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-200"
+              >
+                <Clock size={18} className="mr-3 text-indigo-500 dark:text-indigo-400" />
+                <span>Connections</span>
               </button>
               <button
                 onClick={handleLogout}

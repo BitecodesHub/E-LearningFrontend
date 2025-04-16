@@ -18,10 +18,10 @@ export const Footer = () => {
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Learn</h3>
             <ul className="space-y-1 text-gray-300">
-              {["Courses", "Tutorials", "Documentation", "Resources"].map(
+              {["Courses", "Resources"].map(
                 (item, index) => (
                   <li key={index}>
-                    <a href="/" className="hover:text-blue-400 transition-all">
+                    <a href="/courses" className="hover:text-blue-400 transition-all">
                       {item}
                     </a>
                   </li>
@@ -34,7 +34,7 @@ export const Footer = () => {
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Company</h3>
             <ul className="space-y-1 text-gray-300">
-              {["About Us", "Careers", "Press", "Contact"].map((item, index) => (
+              {["About Us", "Contact"].map((item, index) => (
                 <li key={index}>
                   <a href="/about" className="hover:text-blue-400 transition-all">
                     {item}
@@ -79,7 +79,7 @@ export const Footer = () => {
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 transition-all text-white font-semibold"
+                  className="px-2 py-2 bg-blue-600 hover:bg-blue-500 transition-all text-white font-semibold"
                 >
                   Subscribe
                 </button>

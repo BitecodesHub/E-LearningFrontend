@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
+import ScrollToTop from "./ScrollToTop";
 
 const ChatPage = () => {
   const { id } = useParams();
@@ -26,7 +27,10 @@ const ChatPage = () => {
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 3;
 
-  const chatId = userId && id && !isNaN(id) ? Math.min(userId, id) + "-" + Math.max(userId, id) : null;
+  const chatId =
+    userId && id && !isNaN(id)
+      ? Math.min(userId, id) + "-" + Math.max(userId, id)
+      : null;
 
   useEffect(() => {
     console.log("ChatPage mounted, useParams:", { id }, "URL:", window.location.pathname);
@@ -178,82 +182,111 @@ const ChatPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-red-600 dark:text-red-400 text-center"
+        >
+          {error}
+        </motion.div>
       </div>
     );
   }
 
   if (!currentUser || !otherUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
-        <p className="text-gray-600 dark:text-gray-300">Loading chat...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 px-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-gray-600 dark:text-gray-300 text-center"
+        >
+          Loading chat...
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 px-4 sm:px-6 lg:px-8 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 flex flex-col h-[80vh]"
+        className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col h-[80vh]"
       >
-        <div className="flex items-center gap-4 mb-6">
-          <img
-            src={otherUser.profileurl || "https://webcrumbs.cloud/placeholder"}
-            alt={otherUser.username}
-            className="w-12 h-12 rounded-full"
-          />
-          <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
-            Chat with {otherUser.username}
-          </h1>
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-4">
+            <img
+              src={otherUser.profileurl || "https://webcrumbs.cloud/placeholder"}
+              alt={otherUser.username}
+              className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 dark:border-gray-600"
+            />
+            <div className="text-left">
+              <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {otherUser.name || "@"+otherUser.username}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {otherUser.role}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
           {messages.map((msg) => (
-            <div
+            <motion.div
               key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
               className={`mb-4 flex ${msg.sender.id === parseInt(userId) ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-xs p-3 rounded-lg ${
+                className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
                   msg.sender.id === parseInt(userId)
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                 }`}
               >
-                <p>{msg.content}</p>
-                <p className="text-xs opacity-75 mt-1">
-                  {new Date(msg.timestamp).toLocaleTimeString()}
+                <p className="text-sm">{msg.content}</p>
+                <p className="text-xs opacity-70 mt-1 text-right">
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="mt-4 flex gap-2">
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 p-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 resize-none"
-            rows="3"
-          />
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim() || !isConnected}
-            className={`px-6 py-3 rounded-lg ${
-              !newMessage.trim() || !isConnected
-                ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                : "bg-indigo-600 dark:bg-indigo-700 text-white"
-            }`}
-          >
-            Send
-          </motion.button>
+
+        {/* Message Input */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-end gap-3">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-none text-sm"
+              rows="2"
+            />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim() || !isConnected}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                !newMessage.trim() || !isConnected
+                  ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white"
+              }`}
+            >
+              Send
+            </motion.button>
+          </div>
         </div>
       </motion.div>
     </div>

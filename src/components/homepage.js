@@ -195,7 +195,7 @@ export const HomePage = () => {
               title="Coding Community"
               description="Find partners for pair programming and collaborative projects"
               buttonText="Connect Now"
-              onClick={() => navigate("/find-buddy")}
+              onClick={() => navigate("/community")}
             />
             
             <FeatureCard 

@@ -28,6 +28,7 @@ export const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data) {
+          console.log(response.data);
           setUserData(response.data);
         }
       } catch (error) {
@@ -102,9 +103,9 @@ export const Profile = () => {
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Skills
               </label>
-              {userData.skills && userData.skills.length > 0 ? (
+              {userData.skillIds && userData.skillIds.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {userData.skills.map((skill) => (
+                  {userData.skillIds.map((skill) => (
                     <motion.span
                       key={skill.id}
                       initial={{ opacity: 0, scale: 0.8 }}

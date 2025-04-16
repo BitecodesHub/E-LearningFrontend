@@ -34,15 +34,19 @@ import OnlineCompiler from "./components/Compiler";
 import CommunityPage from "./components/CommunityPage";
 import ChatPage from "./components/Chatpage";
 import AdminUserPanel from "./components/AdminUserPanel";
+import Connections from "./components/Connections";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Router>
       <div className="App">
+        <ScrollToTop/>
         <Navbar />
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/updateprofile" element={<UpdateProfile />} />
           <Route path="/chat/:id" element={<ChatPage />} />
