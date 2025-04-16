@@ -109,10 +109,12 @@ export const HomePage = () => {
         <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-70 transition duration-1000 group-hover:duration-300"></div>
         
         <div className="relative bg-white dark:bg-gray-900 rounded-xl p-6 ring-1 ring-gray-200/50 dark:ring-gray-800 shadow-lg flex flex-col h-full transition-all duration-300 group-hover:translate-y-1">
-          <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 mb-5">
-            <span className="text-indigo-600 dark:text-indigo-400 text-center">
-              {icon}
-            </span>
+          <div className="flex justify-center mb-3">
+            <div className="w-12 h-12 mb-2 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30">
+              <span className="text-indigo-600 dark:text-indigo-400">
+                {icon}
+              </span>
+            </div>
           </div>
           
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
