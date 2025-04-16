@@ -15,6 +15,7 @@ export const UpdateProfile = () => {
   const [availableSkills, setAvailableSkills] = useState([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
   const [isLoadingSkills, setIsLoadingSkills] = useState(true);
+  const [skillSearch, setSkillSearch] = useState("");
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -35,9 +36,10 @@ export const UpdateProfile = () => {
         });
         if (response.data) {
           setUserData(response.data);
-          setSelectedSkillIds(
-            response.data.skills ? response.data.skills.map((s) => s.id) : []
-          );
+          // Initialize selectedSkillIds from skillIds or skills
+          const skillIds = response.data.skillIds || 
+            (response.data.skills ? response.data.skills.map((s) => s.id) : []);
+          setSelectedSkillIds(skillIds);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -48,10 +50,8 @@ export const UpdateProfile = () => {
     const fetchSkills = async () => {
       try {
         setIsLoadingSkills(true);
-        const response = await axios.get(`${apiUrl}/api/auth/skills`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAvailableSkills(response.data); // Expecting [{ id, name }, ...]
+        const response = await axios.get(`${apiUrl}/api/skills`);
+        setAvailableSkills(response.data);
       } catch (error) {
         console.error("Error fetching skills:", error);
         setError("Failed to load skills. Using defaults.");
@@ -107,7 +107,7 @@ export const UpdateProfile = () => {
           },
         });
 
-        newProfileUrl = `${uploadResponse.data}`;
+        newProfileUrl = uploadResponse.data;
       }
 
       // Prepare updated user object
@@ -122,7 +122,7 @@ export const UpdateProfile = () => {
         timezone: userDataUpdated.timezone,
         availability: userDataUpdated.availability,
         role: userDataUpdated.role || null,
-        skills: selectedSkillIds, // Send as [id1, id2, ...]
+        skillIds: selectedSkillIds, // Send as [1, 2, ...]
       };
 
       console.log("Sending update payload:", updatedUser);
@@ -146,6 +146,10 @@ export const UpdateProfile = () => {
     }
   };
 
+  const filteredSkills = availableSkills.filter((skill) =>
+    skill.name.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
@@ -166,7 +170,7 @@ export const UpdateProfile = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+        className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="p-6 sm:p-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
@@ -193,7 +197,7 @@ export const UpdateProfile = () => {
                   />
                 </div>
                 <label
-                  htmlFor="profilePhoto"
+                  html melodicFor="profilePhoto"
                   className="absolute -bottom-2 right-0 bg-indigo-500 dark:bg-indigo-600 p-2 rounded-full cursor-pointer hover:bg-indigo-600 dark:hover:bg-indigo-700 transition-colors"
                 >
                   <svg
@@ -398,18 +402,27 @@ export const UpdateProfile = () => {
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                   Skills
                 </label>
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search skills..."
+                    value={skillSearch}
+                    onChange={(e) => setSkillSearch(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                  />
+                </div>
                 {isLoadingSkills ? (
                   <p className="text-gray-500 dark:text-gray-400">Loading skills...</p>
-                ) : availableSkills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-inner">
-                    {availableSkills.map((skill) => (
+                ) : filteredSkills.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-inner max-h-60 overflow-y-auto">
+                    {filteredSkills.map((skill) => (
                       <motion.button
                         key={skill.id}
                         type="button"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handleSkillToggle(skill.id)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
                           selectedSkillIds.includes(skill.id)
                             ? "bg-indigo-500 dark:bg-indigo-600 text-white"
                             : "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500"
@@ -420,7 +433,9 @@ export const UpdateProfile = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-red-500 dark:text-red-400">No skills available.</p>
+                  <p className="text-red-500 dark:text-red-400">
+                    {skillSearch ? "No skills found." : "No skills available."}
+                  </p>
                 )}
               </div>
             </div>

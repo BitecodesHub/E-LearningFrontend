@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [userId, setUserId] = useState(sessionStorage.getItem("userId"));
   const [userFirstName, setUserFirstName] = useState(sessionStorage.getItem("userFirstName"));
   const [userProfileUrl, setUserProfileUrl] = useState(sessionStorage.getItem("userProfileUrl"));
+  const [role, setRole] = useState(sessionStorage.getItem("role"));
 
   const apiUrl = process.env.REACT_APP_ENV === "production"
     ? process.env.REACT_APP_LIVE_API
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem("userId", data.userid);
         sessionStorage.setItem("userFirstName", data.name);
         sessionStorage.setItem("userProfileUrl", data.profileurl);
+        sessionStorage.setItem("role", data.role);
 
         setIsAuthenticated(true);
         setUserEmail(data.email);
@@ -49,6 +51,7 @@ export const AuthProvider = ({ children }) => {
         setUserToken(data.token);
         setUserProfileUrl(data.profileurl);
         setUserFirstName(data.name);
+        setRole(data.role);
 
         return true;
       } else {
@@ -84,6 +87,7 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem("userProfileUrl", data.profileurl);
         sessionStorage.setItem("userId", data.userid);
         sessionStorage.setItem("userFirstName", data.name);
+        sessionStorage.setItem("role", data.role);
   
         //  Update React state
         setIsAuthenticated(true);
@@ -92,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         setUserFirstName(data.name);
         setUserToken(data.token);
         setUserProfileUrl(data.profileurl);
-  
+        setRole(data.role);
         console.log("Google Login Successful:", data);
         return true;
       } else {
@@ -116,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     setUserState(null);
     setUserFirstName(null);
     setUserProfileUrl(null);
+    setRole(null);
   };
 
   return (

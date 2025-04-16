@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, BookOpen, Layers, PlusCircle } from 'lucide-react';
+import { Users, BookOpen, Layers, PlusCircle, Wrench } from 'lucide-react';
 
 const Sidebar = () => {
   return (
@@ -44,6 +44,11 @@ const Sidebar = () => {
               to: '/admin/users',
               icon: <Users size={20} />,
               label: 'Users',
+            },
+            {
+              to: '/admin/skills',
+              icon: <Wrench size={20} />,
+              label: 'Skills',
             },
           ].map((item, index) => (
             <li key={index}>

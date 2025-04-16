@@ -8,6 +8,7 @@ export const Profile = () => {
   const userId = sessionStorage.getItem("userId");
   const token = sessionStorage.getItem("authToken");
   const [userData, setUserData] = useState(null);
+  const [skills, setSkills] = useState([]); // State to store skill details
   const [error, setError] = useState("");
 
   const apiUrl =
@@ -24,12 +25,13 @@ export const Profile = () => {
           return;
         }
 
-        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`, {
+        // Fetch user data
+        const userResponse = await axios.get(`${apiUrl}/api/auth/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (response.data) {
-          console.log(response.data);
-          setUserData(response.data);
+        if (userResponse.data) {
+          console.log(userResponse.data);
+          setUserData(userResponse.data);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -37,8 +39,30 @@ export const Profile = () => {
       }
     };
 
+    const fetchSkills = async () => {
+      try {
+        // Fetch all skills from the /api/skills endpoint
+        const skillsResponse = await axios.get(`${apiUrl}/api/skills`);
+        if (skillsResponse.data) {
+          setSkills(skillsResponse.data); // Store skills in state
+        }
+      } catch (error) {
+        console.error("Error fetching skills:", error);
+        setError("Failed to load skills.");
+      }
+    };
+
     fetchUserData();
+    fetchSkills();
   }, [userId, token, apiUrl, navigate]);
+
+  // Map skillIds to skill names
+  const getSkillNames = () => {
+    if (!userData?.skillIds || !skills.length) return [];
+    return userData.skillIds
+      .map((skillId) => skills.find((skill) => skill.id === skillId))
+      .filter((skill) => skill); // Filter out undefined skills
+  };
 
   if (!userData) {
     return (
@@ -103,9 +127,9 @@ export const Profile = () => {
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Skills
               </label>
-              {userData.skillIds && userData.skillIds.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {userData.skillIds.map((skill) => (
+              {getSkillNames().length > 0 ? (
+                <div className="flex flex-row flex-wrap justify-center gap-2">
+                  {getSkillNames().map((skill) => (
                     <motion.span
                       key={skill.id}
                       initial={{ opacity: 0, scale: 0.8 }}

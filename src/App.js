@@ -36,6 +36,9 @@ import ChatPage from "./components/Chatpage";
 import AdminUserPanel from "./components/AdminUserPanel";
 import Connections from "./components/Connections";
 import ScrollToTop from "./components/ScrollToTop";
+import AdminSkillPanel from "./components/AdminSkillpanel";
+import ProtctedAdmin from "./components/ProtectedAdmin";
+import ProtectedAdmin from "./components/ProtectedAdmin";
 
 function App() {
   return (
@@ -71,14 +74,23 @@ function App() {
 
 
           <Route path="/course/:courseId/exam" element={<ProtectedRoute><TakeExam /></ProtectedRoute>} />
-        <Route path="/admincourses" element={<ProtectedRoute><AdminCoursePanel /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute><AdminUserPanel /></ProtectedRoute>} />
+        
+       
         <Route path="/certificates" element={<ProtectedRoute><ShowCertificates /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-        <Route path="/addcourse" element={<ProtectedRoute><AddCourse /></ProtectedRoute>} />
         <Route path="/result/:attemptId" element={<ProtectedRoute><ExamResult /></ProtectedRoute>} />
-        <Route path="/course/add-module" element={<ProtectedRoute><AddModule /></ProtectedRoute>} />
         <Route path="/attempts" element={<ProtectedRoute><UserAttempts /></ProtectedRoute>} />
+       
+
+
+
+         {/* Admin */}
+<Route element={<ProtectedAdmin />}>
+    <Route path="/admincourses" element={<AdminCoursePanel />} />
+    <Route path="/admin" element={<AdminPanel />} />
+    <Route path="/admin/skills" element={<AdminSkillPanel />} />
+    <Route path="/course/add-module" element={<AddModule />} />
+    <Route path="/admin/users" element={<AdminUserPanel />} />
+</Route>
 
           <Route
           path="/updateprofile"
