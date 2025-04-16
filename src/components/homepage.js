@@ -110,7 +110,7 @@ export const HomePage = () => {
         
         <div className="relative bg-white dark:bg-gray-900 rounded-xl p-6 ring-1 ring-gray-200/50 dark:ring-gray-800 shadow-lg flex flex-col h-full transition-all duration-300 group-hover:translate-y-1">
           <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 mb-5">
-            <span className="text-indigo-600 dark:text-indigo-400">
+            <span className="text-indigo-600 dark:text-indigo-400 text-center">
               {icon}
             </span>
           </div>
@@ -210,10 +210,10 @@ export const HomePage = () => {
 
         {/* Courses Section */}
         <section className="mb-16">
-          <div className="flex justify-between items-center mb-10">
+          <div className="text-center mb-10">
             <div>
-              <h2 className="inline-block text-lg font-medium px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full mb-2">Courses</h2>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white">Popular Learning Paths</h3>
+              <h2 className="inline-block text-lg font-medium px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full mb-4">Courses</h2>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-5">Popular Learning Paths</h3>
             </div>
             <button
               className="group flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
@@ -286,7 +286,7 @@ export const HomePage = () => {
                 <FaCode size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Multiple Languages</p>
+                <p className="text-sm text-left font-medium text-gray-900 dark:text-white">Multiple Languages</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Support for Python, JavaScript, Java, Go, and more</p>
               </div>
             </div>
@@ -296,7 +296,7 @@ export const HomePage = () => {
                 <FaCheck size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Real-time Feedback</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Real-time Feedback</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Instant error checking and syntax highlighting</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ export const HomePage = () => {
                 <FaShareAlt size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Share & Collaborate</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Share & Collaborate</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Save, version, and share your code with others</p>
               </div>
             </div>
@@ -509,7 +509,7 @@ export const HomePage = () => {
                 <FaUserCheck size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Skill Matching</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Skill Matching</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Connect with developers at your skill level</p>
               </div>
             </div>
@@ -519,7 +519,7 @@ export const HomePage = () => {
                 <FaFilter size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Smart Filters</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Smart Filters</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Find buddies by language, timezone and availability</p>
               </div>
             </div>
@@ -529,7 +529,7 @@ export const HomePage = () => {
                 <FaLaptopCode size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Built-in Collaboration</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Built-in Collaboration</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Integrated tools for pair programming sessions</p>
               </div>
             </div>
@@ -580,7 +580,7 @@ export const HomePage = () => {
                 <FaLightbulb size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Smart Recommendations</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Smart Recommendations</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Personalized learning paths based on your progress</p>
               </div>
             </div>
@@ -590,7 +590,7 @@ export const HomePage = () => {
                 <FaCode size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Code Analysis</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Code Analysis</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Instant feedback and optimization suggestions</p>
               </div>
             </div>
@@ -600,7 +600,7 @@ export const HomePage = () => {
                 <FaClock size={16} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Always Available</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white text-left">Always Available</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">24/7 assistance whenever you need help</p>
               </div>
             </div>
