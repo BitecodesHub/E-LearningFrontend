@@ -154,11 +154,11 @@ export const HomePage = () => {
               Elevate your skills with our interactive platform and AI assistance.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <button className="px-8 py-3.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105 hover:shadow-lg shadow-indigo-200/50 flex items-center justify-center font-medium">
+              <button onClick={() => navigate("/courses")} className="px-8 py-3.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105 hover:shadow-lg shadow-indigo-200/50 flex items-center justify-center font-medium">
                 <FaGraduationCap className="mr-2 text-indigo-200" />
                 <span>Explore Courses</span>
               </button>
-              <button className="px-8 py-3.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 hover:shadow-lg shadow-purple-200/50 flex items-center justify-center font-medium">
+              <button onClick={() => navigate("/ai")} className="px-8 py-3.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 hover:shadow-lg shadow-purple-200/50 flex items-center justify-center font-medium">
                 <FaRobot className="mr-2 text-purple-200" />
                 <span>AI Assistant</span>
               </button>

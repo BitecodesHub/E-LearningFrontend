@@ -1,184 +1,205 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 export const Profile = () => {
   const navigate = useNavigate();
-  const userId = sessionStorage.getItem("userId"); // Ensure this value is stored correctly
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("authToken");
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState("");
+
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
       ? process.env.REACT_APP_LIVE_API
       : process.env.REACT_APP_LOCAL_API;
 
-  const [userData, setUserData] = useState(null);
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!userId) return; // If there's no userId, stop execution
+        if (!userId || !token) {
+          setError("Please log in to view your profile.");
+          navigate("/");
+          return;
+        }
 
-        // Fetch user data based on userId
-        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`);
-
+        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (response.data) {
-          // Map response data to state
-          setUserData({
-            username: response.data.username,
-            userEmail: response.data.email,
-            userPhonenum: response.data.phonenum,
-            userState: response.data.state,
-            userFirstName: response.data.name,
-            userProfileUrl: response.data.profileurl,
-            bio: response.data.bio,
-            timezone: response.data.timezone,
-            availability: response.data.availability,
-            skills: response.data.skills,
-          });
+          setUserData(response.data);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setError("Failed to load profile data.");
       }
     };
 
     fetchUserData();
-  }, [userId, apiUrl]); // Add apiUrl to dependencies to ensure it updates if needed
-
-  const handleLogout = () => {
-    sessionStorage.clear();
-    navigate("/");
-  };
-
-  const handleUpdateProfile = () => {
-    navigate("/updateprofile");
-  };
+  }, [userId, token, apiUrl, navigate]);
 
   if (!userData) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
-        <p className="text-lg font-semibold text-gray-600 dark:text-gray-400">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-gray-600 dark:text-gray-400 text-lg font-semibold"
+        >
+          Loading profile...
+        </motion.p>
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-6 my-12">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 p-4 sm:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+      >
+        <div className="p-6 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+            Your Profile
+          </h1>
+
           <div className="space-y-6">
+            {/* Profile Image and Name */}
             <div className="flex flex-col items-center">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-200 dark:border-gray-600 shadow-lg">
-                  <img
-                    src={userData.userProfileUrl}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-100 dark:border-gray-700 shadow-md mb-4"
+              >
+                <img
+                  src={userData.profileurl || "https://webcrumbs.cloud/placeholder"}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {userData.name}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">@{userData.username}</p>
             </div>
 
-            <div className="space-y-4 text-left">
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  <b>Full Name</b>
+            {/* Role */}
+            {userData.role && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Role
                 </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.userFirstName}
-                </p>
+                <p className="text-gray-900 dark:text-gray-100">{userData.role}</p>
               </div>
+            )}
 
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Email Address
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.userEmail}
-                </p>
-              </div>
+            {/* Skills */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Skills
+              </label>
+              {userData.skills && userData.skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {userData.skills.map((skill) => (
+                    <motion.span
+                      key={skill.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full text-sm font-medium"
+                    >
+                      {skill.name}
+                    </motion.span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">No skills added.</p>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Phone Number
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.userPhonenum || "Add Number by Updating Profile"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Username
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  @{userData.username}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  State
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.userState}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
+            {/* Bio */}
+            {userData.bio && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                   Bio
                 </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.bio || "Add Bio by Updating Profile"}
-                </p>
+                <p className="text-gray-900 dark:text-gray-100">{userData.bio}</p>
               </div>
+            )}
 
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Timezone
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.timezone || "Add Timezone by Updating Profile"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Availability
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.availability || "Add Availability by Updating Profile"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-lg font-medium mb-2 text-gray-600 dark:text-gray-200">
-                  Skills
-                </label>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                  {userData.skills && userData.skills.length > 0
-                    ? userData.skills.map((skill) => skill.name).join(", ")
-                    : "Add Skills by Updating Profile"}
-                </p>
-              </div>
+            {/* Other Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {userData.email && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Email
+                  </label>
+                  <p className="text-gray-900 dark:text-gray-100">{userData.email}</p>
+                </div>
+              )}
+              {userData.phonenum && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Phone
+                  </label>
+                  <p className="text-gray-900 dark:text-gray-100">{userData.phonenum}</p>
+                </div>
+              )}
+              {userData.state && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    State
+                  </label>
+                  <p className="text-gray-900 dark:text-gray-100">{userData.state}</p>
+                </div>
+              )}
+              {userData.timezone && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Timezone
+                  </label>
+                  <p className="text-gray-900 dark:text-gray-100">{userData.timezone}</p>
+                </div>
+              )}
+              {userData.availability && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Availability
+                  </label>
+                  <p className="text-gray-900 dark:text-gray-100">{userData.availability}</p>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <button
-                onClick={handleUpdateProfile}
-                className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 active:bg-blue-800 dark:active:bg-blue-900 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
-              >
-                Update Profile
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex-1 bg-red-600 dark:bg-red-700 text-white py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 active:bg-red-800 dark:active:bg-red-900 transform transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
-              >
-                Logout
-              </button>
-            </div>
+            {/* Edit Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/updateprofile")}
+              className="w-full py-3 bg-indigo-500 dark:bg-indigo-600 text-white rounded-lg hover:bg-indigo-600 dark:hover:bg-indigo-700 shadow-md transition-colors"
+            >
+              Edit Profile
+            </motion.button>
           </div>
+
+          {/* Error */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 flex items-center justify-center text-red-600 dark:text-red-400"
+            >
+              <span>{error}</span>
+            </motion.div>
+          )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
+
+export default Profile;

@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 export const UpdateProfile = () => {
   const navigate = useNavigate();
-  const userId = sessionStorage.getItem("userId"); // Get userId from session storage
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("authToken");
   const [userData, setUserData] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState([]);
+  const [isLoadingSkills, setIsLoadingSkills] = useState(true);
 
   const apiUrl =
     process.env.REACT_APP_ENV === "production"
@@ -18,31 +24,71 @@ export const UpdateProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!userId) return;
+        if (!userId || !token) {
+          setError("Please log in to update your profile.");
+          navigate("/");
+          return;
+        }
 
-        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`);
-
+        const response = await axios.get(`${apiUrl}/api/auth/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (response.data) {
           setUserData(response.data);
+          setSelectedSkillIds(
+            response.data.skills ? response.data.skills.map((s) => s.id) : []
+          );
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setError("Failed to load profile data.");
+      }
+    };
+
+    const fetchSkills = async () => {
+      try {
+        setIsLoadingSkills(true);
+        const response = await axios.get(`${apiUrl}/api/auth/skills`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAvailableSkills(response.data); // Expecting [{ id, name }, ...]
+      } catch (error) {
+        console.error("Error fetching skills:", error);
+        setError("Failed to load skills. Using defaults.");
+        setAvailableSkills([
+          { id: 1, name: "JavaScript" },
+          { id: 2, name: "Python" },
+          { id: 3, name: "Java" },
+          { id: 4, name: "React" },
+          { id: 5, name: "Node.js" },
+        ]);
+      } finally {
+        setIsLoadingSkills(false);
       }
     };
 
     fetchUserData();
-  }, [userId, apiUrl]);
+    fetchSkills();
+  }, [userId, token, apiUrl, navigate]);
 
-  // Handle profile image selection
   const handleImageChange = (event) => {
     const file = event.target.files[0];
-    setProfileImage(file);
+    if (file) {
+      setProfileImage(file);
+    }
   };
 
-  // Handle form submission
+  const handleSkillToggle = (skillId) => {
+    setSelectedSkillIds((prev) =>
+      prev.includes(skillId) ? prev.filter((id) => id !== skillId) : [...prev, skillId]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUpdating(true);
+    setError("");
+    setSuccess(false);
 
     const formData = new FormData(e.target);
     const userDataUpdated = Object.fromEntries(formData);
@@ -55,7 +101,10 @@ export const UpdateProfile = () => {
         imageForm.append("thumbnailUrl", profileImage);
 
         const uploadResponse = await axios.post(`${apiUrl}/upload/profilephoto`, imageForm, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         newProfileUrl = `${uploadResponse.data}`;
@@ -69,10 +118,19 @@ export const UpdateProfile = () => {
         phonenum: userDataUpdated.phone,
         state: userDataUpdated.state,
         profileurl: newProfileUrl,
+        bio: userDataUpdated.bio,
+        timezone: userDataUpdated.timezone,
+        availability: userDataUpdated.availability,
+        role: userDataUpdated.role || null,
+        skills: selectedSkillIds, // Send as [id1, id2, ...]
       };
 
+      console.log("Sending update payload:", updatedUser);
+
       // Send update request
-      const response = await axios.put(`${apiUrl}/api/auth/update/${userId}`, updatedUser);
+      const response = await axios.put(`${apiUrl}/api/auth/update/${userId}`, updatedUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.status === 200) {
         setSuccess(true);
@@ -81,7 +139,8 @@ export const UpdateProfile = () => {
         }, 2000);
       }
     } catch (error) {
-      console.error("Update failed:", error);
+      console.error("Update failed:", error.response?.data || error.message);
+      setError("Failed to update profile: " + (error.response?.data?.message || "Please try again."));
     } finally {
       setIsUpdating(false);
     }
@@ -89,172 +148,334 @@ export const UpdateProfile = () => {
 
   if (!userData) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
-        <p className="text-lg font-semibold text-gray-600 dark:text-gray-400">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-gray-600 dark:text-gray-400 text-lg font-semibold"
+        >
+          Loading profile...
+        </motion.p>
       </div>
     );
   }
 
   return (
-    <div id="webcrumbs">
-      <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-indigo-950">
-        <main className="p-8">
-          <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-transform hover:scale-[1.02]">
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="flex flex-col items-center mb-8">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-100 dark:border-gray-600">
-                    <img
-                      src={userData.profileurl}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <label
-                    htmlFor="profilePhoto"
-                    className="absolute left-0 bottom-0 right-0 bg-blue-600 dark:bg-blue-700 p-2 rounded-full cursor-pointer hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-white">Upload Photo</span>
-                    <input
-                      type="file"
-                      id="profilePhoto"
-                      name="profilePhoto"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-200">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    defaultValue={userData.name}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition-all"
-                    placeholder="Enter your full name"
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500/20 via-purple-400/20 to-blue-400/20 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 p-4 sm:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+      >
+        <div className="p-6 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+            Update Your Profile
+          </h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Profile Image */}
+            <div className="flex flex-col items-center mb-6">
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="relative"
+              >
+                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-100 dark:border-gray-700 shadow-md">
+                  <img
+                    src={
+                      profileImage
+                        ? URL.createObjectURL(profileImage)
+                        : userData.profileurl || "https://webcrumbs.cloud/placeholder"
+                    }
+                    alt="Profile"
+                    className="w-full h-full object-cover"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-200">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    defaultValue={userData.email}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition-all opacity-50 cursor-not-allowed"
-                    placeholder="Enter your email"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-200">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    defaultValue={userData.phonenum}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition-all"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-200">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    defaultValue={userData.username}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition-all"
-                    placeholder="Choose a username"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-200">
-                    State
-                  </label>
-                  <select
-                    name="state"
-                    defaultValue={userData.state}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition-all"
-                  >
-                    <option value="">Select your state</option>
-                    <option value="Andhra Pradesh">Andhra Pradesh</option>
-                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                    <option value="Assam">Assam</option>
-                    <option value="Bihar">Bihar</option>
-                    <option value="Chhattisgarh">Chhattisgarh</option>
-                    <option value="Goa">Goa</option>
-                    <option value="Gujarat">Gujarat</option>
-                    <option value="Haryana">Haryana</option>
-                    <option value="Himachal Pradesh">Himachal Pradesh</option>
-                    <option value="Jharkhand">Jharkhand</option>
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="Kerala">Kerala</option>
-                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Manipur">Manipur</option>
-                    <option value="Meghalaya">Meghalaya</option>
-                    <option value="Mizoram">Mizoram</option>
-                    <option value="Nagaland">Nagaland</option>
-                    <option value="Odisha">Odisha</option>
-                    <option value="Punjab">Punjab</option>
-                    <option value="Rajasthan">Rajasthan</option>
-                    <option value="Sikkim">Sikkim</option>
-                    <option value="Tamil Nadu">Tamil Nadu</option>
-                    <option value="Telangana">Telangana</option>
-                    <option value="Tripura">Tripura</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                    <option value="Uttarakhand">Uttarakhand</option>
-                    <option value="West Bengal">West Bengal</option>
-                    <option disabled>───────────</option>
-                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                    <option value="Chandigarh">Chandigarh</option>
-                    <option value="Dadra and Nagar Haveli and Daman and Diu">
-                      Dadra and Nagar Haveli and Daman and Diu
-                    </option>
-                    <option value="Lakshadweep">Lakshadweep</option>
-                    <option value="Delhi">Delhi</option>
-                    <option value="Puducherry">Puducherry</option>
-                    <option value="Ladakh">Ladakh</option>
-                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 active:bg-blue-800 dark:active:bg-blue-900 transform transition-all hover:-translate-y-1"
+                <label
+                  htmlFor="profilePhoto"
+                  className="absolute -bottom-2 right-0 bg-indigo-500 dark:bg-indigo-600 p-2 rounded-full cursor-pointer hover:bg-indigo-600 dark:hover:bg-indigo-700 transition-colors"
                 >
-                  {isUpdating ? "Updating..." : "Update Profile"}
-                </button>
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-4l-4-4m0 0l-4 4m4-4v12"
+                    ></path>
+                  </svg>
+                  <input
+                    type="file"
+                    id="profilePhoto"
+                    name="profilePhoto"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </motion.div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  defaultValue={userData.name}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                  placeholder="Enter your full name"
+                  required
+                />
               </div>
 
-              {success && (
-                <div className="mt-4 flex justify-center items-center">
-                  <div className="w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full animate-ping"></div>
-                  <span className="ml-2 text-green-600 dark:text-green-400">
-                    Profile updated successfully! Redirecting...
-                  </span>
-                </div>
-              )}
-            </form>
-          </div>
-        </main>
-      </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  defaultValue={userData.username}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                  placeholder="Choose a username"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  defaultValue={userData.email}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg cursor-not-allowed"
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  defaultValue={userData.phonenum}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  State
+                </label>
+                <select
+                  name="state"
+                  defaultValue={userData.state}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                >
+                  <option value="">Select your state</option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option disabled>───────────</option>
+                  <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                  <option value="Chandigarh">Chandigarh</option>
+                  <option value="Dadra and Nagar Haveli and Daman and Diu">
+                    Dadra and Nagar Haveli and Daman and Diu
+                  </option>
+                  <option value="Lakshadweep">Lakshadweep</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Puducherry">Puducherry</option>
+                  <option value="Ladakh">Ladakh</option>
+                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Role
+                </label>
+                <select
+                  name="role"
+                  defaultValue={userData.role || ""}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                >
+                  <option value="">Select your role</option>
+                  <option value="Software Developer">Software Developer</option>
+                  <option value="Data Scientist">Data Scientist</option>
+                  <option value="UI/UX Designer">UI/UX Designer</option>
+                  <option value="DevOps Engineer">DevOps Engineer</option>
+                  <option value="Product Manager">Product Manager</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  defaultValue={userData.bio}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all resize-none"
+                  placeholder="Tell us about yourself"
+                  rows="4"
+                ></textarea>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Timezone
+                </label>
+                <select
+                  name="timezone"
+                  defaultValue={userData.timezone}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                >
+                  <option value="">Select your timezone</option>
+                  <option value="UTC">UTC</option>
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                  <option value="America/New_York">America/New_York (EST)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                  <option value="Europe/London">Europe/London (GMT)</option>
+                  <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Availability
+                </label>
+                <input
+                  type="text"
+                  name="availability"
+                  defaultValue={userData.availability}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:outline-none transition-all"
+                  placeholder="E.g., Weekdays 6-8 PM"
+                />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Skills
+                </label>
+                {isLoadingSkills ? (
+                  <p className="text-gray-500 dark:text-gray-400">Loading skills...</p>
+                ) : availableSkills.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-inner">
+                    {availableSkills.map((skill) => (
+                      <motion.button
+                        key={skill.id}
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSkillToggle(skill.id)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          selectedSkillIds.includes(skill.id)
+                            ? "bg-indigo-500 dark:bg-indigo-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500"
+                        }`}
+                      >
+                        {skill.name}
+                      </motion.button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-red-500 dark:text-red-400">No skills available.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                disabled={isUpdating}
+                className={`flex-1 py-3 rounded-lg text-white shadow-md ${
+                  isUpdating
+                    ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+                    : "bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-700"
+                }`}
+              >
+                {isUpdating ? "Updating..." : "Update Profile"}
+              </motion.button>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/profile")}
+                className="flex-1 py-3 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 shadow-md"
+              >
+                Cancel
+              </motion.button>
+            </div>
+
+            {/* Feedback */}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 flex items-center justify-center text-green-600 dark:text-green-400"
+              >
+                <div className="w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full animate-pulse mr-2"></div>
+                <span>Profile updated successfully! Redirecting...</span>
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 flex items-center justify-center text-red-600 dark:text-red-400"
+              >
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </form>
+        </div>
+      </motion.div>
     </div>
   );
 };
+
+export default UpdateProfile;

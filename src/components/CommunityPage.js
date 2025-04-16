@@ -6,7 +6,7 @@ import UserProfileCard from "./UserProfileCard";
 
 const CommunityPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [users, setUsers] = useState([]); // Initialize as empty array
+  const [users, setUsers] = useState([]);
   const [filters, setFilters] = useState({
     skills: [],
     role: "",
@@ -58,8 +58,7 @@ const CommunityPage = () => {
         params,
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Filter API response:", response.data); // Debug log
-      // Ensure response.data is an array
+      console.log("Filter API response:", response.data);
       if (Array.isArray(response.data)) {
         setUsers(response.data);
       } else {
@@ -70,7 +69,7 @@ const CommunityPage = () => {
     } catch (err) {
       console.error("Error fetching users:", err);
       setError(err.response?.data?.message || "Failed to load users. Please try again.");
-      setUsers([]); // Reset to empty array on error
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +89,21 @@ const CommunityPage = () => {
     }));
   };
 
-  const skillsList = ["JavaScript", "Python", "Java", "React", "Spring Boot"];
+  const skillsList = ["JavaScript",
+    "Python",
+    "Java",
+    "React",
+    "Node.js",
+    "SQL",
+    "HTML",
+    "CSS",
+    "TypeScript",
+    "Angular",
+    "Vue.js",
+    "MongoDB",
+    "AWS",
+    "Docker",
+    "Kubernetes"];
   const rolesList = ["Software Developer", "Data Scientist", "DevOps Engineer"];
   const timezonesList = ["America/New_York", "Europe/London", "Asia/Tokyo"];
 
@@ -117,7 +130,6 @@ const CommunityPage = () => {
           Connect with like-minded developers, pair program, and build projects together.
         </p>
 
-        {/* Filters */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
           <div className="flex items-center gap-2 mb-4">
             <FiFilter className="text-indigo-600 dark:text-indigo-400" />
@@ -125,7 +137,9 @@ const CommunityPage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Skills
+              </label>
               <div className="flex flex-wrap gap-2">
                 {skillsList.map((skill) => (
                   <button
@@ -144,7 +158,9 @@ const CommunityPage = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Role
+              </label>
               <select
                 name="role"
                 value={filters.role}
@@ -158,7 +174,9 @@ const CommunityPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Timezone</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Timezone
+              </label>
               <select
                 name="timezone"
                 value={filters.timezone}
@@ -174,7 +192,6 @@ const CommunityPage = () => {
           </div>
         </div>
 
-        {/* User Grid */}
         {loading ? (
           <div className="flex justify-center">
             <div className="w-12 h-12 border-4 border-indigo-500 dark:border-indigo-400 border-t-purple-500 dark:border-t-purple-400 rounded-full animate-spin"></div>
