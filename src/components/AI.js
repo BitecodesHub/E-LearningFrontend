@@ -1,30 +1,72 @@
-"use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Sun, Moon, Minimize2, Maximize2, Send, Square } from "lucide-react";
+import { 
+  Copy, 
+  Sun, 
+  Moon, 
+  Minimize2, 
+  Maximize2, 
+  Send, 
+  Square,
+  Volume2,
+  Save,
+  Trash,
+  Download,
+} from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 // Utility to detect code language
 const detectLanguage = (code) => {
-  if (code.includes("public class")) return "java";
-  if (code.includes("def ") || code.includes("print(")) return "python";
-  if (code.includes("console.log")) return "javascript";
-  if (code.includes("#include")) return "cpp";
+  if (!code || typeof code !== 'string') return "plaintext";
+  
+  if (code.includes("public class") || code.includes("private void")) return "java";
+  if (code.includes("def ") || code.includes("print(") || code.includes("import numpy")) return "python";
+  if (code.includes("console.log") || code.includes("function ") || code.includes("const ") || code.includes("let ")) return "javascript";
+  if (code.includes("#include") || code.includes("int main(")) return "cpp";
+  if (code.includes("<html") || code.includes("<!DOCTYPE")) return "html";
+  if (code.includes("SELECT ") && code.includes(" FROM ")) return "sql";
+  if (code.includes("using namespace") || code.includes("std::")) return "cpp";
+  if (code.includes("package ") || code.includes("func ") || code.includes("fmt.")) return "go";
+  
   return "plaintext";
 };
 
-// Text-to-speech function
-const speakText = (text) => {
-  if ("speechSynthesis" in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
+// Enhanced text-to-speech function with error handling
+const speakText = (text, onStart, onEnd) => {
+  if (!("speechSynthesis" in window)) {
+    console.error("Text-to-speech not supported in this browser");
+    return false;
+  }
+  
+  try {
+    window.speechSynthesis.cancel();
+    
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, "Code block omitted for speech.")
+      .replace(/[^\w\s.,?!;:'"()\-\u0080-\uFFFF]/g, "");
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "en-US";
     utterance.rate = 1;
+    utterance.pitch = 1;
+    
+    if (onStart) utterance.onstart = onStart;
+    if (onEnd) utterance.onend = onEnd;
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      if (onEnd) onEnd();
+    };
+    
     window.speechSynthesis.speak(utterance);
+    return true;
+  } catch (error) {
+    console.error("Speech synthesis error:", error);
+    return false;
   }
 };
 
-export const LearnWithoutLimitsAI = () => {
+const LearnWithoutLimitsAI = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState("");
@@ -36,21 +78,67 @@ export const LearnWithoutLimitsAI = () => {
     codeLanguage: "",
     isInCodeBlock: false,
   });
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [robotAnimation, setRobotAnimation] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
+  
   const chatContainerRef = useRef(null);
   const controllerRef = useRef(null);
   const textareaRef = useRef(null);
+  const localStorageKey = "LearnWithoutLimitsChat";
 
   // Initialize welcome message
   useEffect(() => {
+    const savedChat = localStorage.getItem(localStorageKey);
+    if (savedChat) {
+      try {
+        const parsedChat = JSON.parse(savedChat);
+        if (Array.isArray(parsedChat) && parsedChat.length > 0) {
+          setChatMessages(parsedChat);
+          return;
+        }
+      } catch (error) {
+        console.error("Error loading saved chat:", error);
+      }
+    }
+
     const welcomeMessage = {
       id: Date.now(),
       text: "🌌 Greetings, knowledge seeker! I'm your AI guide to mastering any subject. What's sparking your curiosity today?",
       className: "ai-message",
       code: null,
+      timestamp: new Date().toISOString(),
     };
     setTimeout(() => {
       setChatMessages([welcomeMessage]);
     }, 500);
+  }, []);
+
+  // Save chats to localStorage when they change
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      try {
+        localStorage.setItem(localStorageKey, JSON.stringify(chatMessages));
+      } catch (error) {
+        console.error("Error saving chat to localStorage:", error);
+      }
+    }
+  }, [chatMessages]);
+
+  // Load saved conversations from localStorage
+  useEffect(() => {
+    try {
+      const savedHistoryStr = localStorage.getItem("LearnWithoutLimitsHistory");
+      if (savedHistoryStr) {
+        const savedHistory = JSON.parse(savedHistoryStr);
+        if (Array.isArray(savedHistory)) {
+          setConversationHistory(savedHistory);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading conversation history:", error);
+    }
   }, []);
 
   // Auto-scroll chat
@@ -84,27 +172,35 @@ export const LearnWithoutLimitsAI = () => {
   const toggleMinimize = () => setIsMinimized((prev) => !prev);
 
   const appendMessage = (text, className, code = null) => {
+    const timestamp = new Date().toISOString();
     setChatMessages((prev) => {
-      const newMessage = { id: Date.now(), text, className, code };
-      return [...prev.slice(-50), newMessage];
+      const newMessage = { id: Date.now(), text, className, code, timestamp };
+      return [...prev.slice(-150), newMessage];
     });
   };
 
   const updateLastMessage = (text, code = null) => {
     setChatMessages((prev) => {
       const updatedMessages = [...prev];
+      if (updatedMessages.length === 0) return prev;
+      
       updatedMessages[updatedMessages.length - 1] = {
         ...updatedMessages[updatedMessages.length - 1],
         text,
         code,
+        timestamp: new Date().toISOString(),
       };
       return updatedMessages;
     });
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    showToast("📋 Code copied!");
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("📋 Code copied!");
+    }).catch(err => {
+      console.error("Failed to copy:", err);
+      showToast("❌ Failed to copy code");
+    });
   };
 
   const showToast = (message) => {
@@ -113,13 +209,15 @@ export const LearnWithoutLimitsAI = () => {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => {
-      toast.classList.add("scale-0");
+      toast.classList.add("scale-0", "opacity-0");
       toast.classList.remove("opacity-100");
       setTimeout(() => toast.remove(), 300);
     }, 2000);
   };
 
   const extractCodeFromText = (text) => {
+    if (!text) return { code: null, text: "" };
+    
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
     let remainingText = text;
     const codeBlocks = [];
@@ -150,11 +248,13 @@ export const LearnWithoutLimitsAI = () => {
     setStreamingState({
       tempText: "",
       currentCodeBlock: "",
-      codeLanguage: "",
+ codeLanguage: "",
       isInCodeBlock: false,
     });
 
     try {
+      appendMessage("", "ai-message"); // Placeholder for streaming response
+
       const response = await fetch("https://ai.bitecodes.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -170,8 +270,6 @@ export const LearnWithoutLimitsAI = () => {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
-      appendMessage("", "ai-message"); // Placeholder for streaming response
 
       while (true) {
         const { done, value } = await reader.read();
@@ -267,11 +365,31 @@ export const LearnWithoutLimitsAI = () => {
     }
   };
 
-  // Animation variants
-  const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+  const speakMessage = (text) => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setRobotAnimation(false);
+      return;
+    }
+    
+    const cleanText = text.replace(/```[\s\S]*?```/g, "Code block omitted for speech.");
+    
+    const success = speakText(
+      cleanText, 
+      () => {
+        setIsSpeaking(true);
+        setRobotAnimation(true);
+      },
+      () => {
+        setIsSpeaking(false);
+        setRobotAnimation(false);
+      }
+    );
+    
+    if (!success) {
+      showToast("❌ Text-to-speech failed");
+    }
   };
 
   return (
@@ -283,7 +401,7 @@ export const LearnWithoutLimitsAI = () => {
         isDarkMode
           ? "bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-900"
           : "bg-gradient-to-br from-blue-50 via-indigo-50 to-gray-100"
-      } transition-colors duration-500 font-sans`}
+      } transition-colors duration-500 font -sans`}
     >
       <motion.div
         layout
@@ -296,7 +414,6 @@ export const LearnWithoutLimitsAI = () => {
             : "bg-white/80 shadow-blue-300/50"
         } transition-all duration-500`}
       >
-        {/* Header */}
         <header
           className={`flex items-center justify-between p-4 sm:p-5 ${
             isDarkMode ? "bg-gray-850/50" : "bg-white/50"
@@ -310,7 +427,7 @@ export const LearnWithoutLimitsAI = () => {
               transition={{ duration: 0.8 }}
               className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base sm:text-lg"
             >
-              L
+              🤖
             </motion.div>
             <motion.h1
               whileHover={{ scale: 1.05 }}
@@ -353,17 +470,11 @@ export const LearnWithoutLimitsAI = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <AnimatePresence>
           {!isMinimized && (
             <motion.div
-              variants={fadeInUp}
-              initial="initial"
-              animate="animate"
-              exit="exit"
               className="flex flex-col h-[calc(85vh-72px)] sm:h-[calc(90vh-80px)]"
             >
-              {/* Chat Area */}
               <div
                 ref={chatContainerRef}
                 className={`flex-grow overflow-y-auto p-4 sm:p-6 ${
@@ -374,10 +485,6 @@ export const LearnWithoutLimitsAI = () => {
                   {chatMessages.map((msg) => (
                     <motion.div
                       key={msg.id}
-                      variants={fadeInUp}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
                       className={`mb-4 flex ${
                         msg.className === "user-message" ? "justify-end" : "justify-start"
                       } items-end`}
@@ -468,7 +575,6 @@ export const LearnWithoutLimitsAI = () => {
                 )}
               </div>
 
-              {/* Input Area */}
               <div
                 className={`p-4 sm:p-6 ${
                   isDarkMode
@@ -490,7 +596,7 @@ export const LearnWithoutLimitsAI = () => {
                     } text-sm sm:text-base`}
                     placeholder="Ask anything you want to learn..."
                     style={{ minHeight: "50px", maxHeight: "150px" }}
-                    whileFocus={{ boxShadow: "0 0 0 3px rgba(99, 102, 241, 0.2)" }}
+                    whileFocus={{ boxShadow: "0 0 0 3px rgba(99, 102,  241, 0.2)" }}
                   />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -513,6 +619,17 @@ export const LearnWithoutLimitsAI = () => {
                         Send
                       </>
                     )}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => speakMessage(message)}
+                    className={`p-3 sm:p-4 rounded-xl ${
+                      isDarkMode ? "bg-gray-700/50 text-green-300" : "bg-gray-200/50 text-green-600"
+                    } hover:bg-indigo-500/20 transition-colors`}
+                    aria-label="Speak message"
+                  >
+                    <Volume2 className="w-4 sm:w-5 h-4 sm:h-5" />
                   </motion.button>
                 </div>
                 <div className="mt-2 text-xs text-center text-gray-400">
