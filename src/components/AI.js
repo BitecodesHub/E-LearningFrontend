@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Menu, X, Send, Square, Volume2, Save, Trash, Download, Palette, Mic, ChevronDown } from "lucide-react";
+import { Copy, Menu, X, Send, Square, Volume2, Save, Trash, Palette, Mic, ChevronDown, Code } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import lottie from "lottie-web";
 
 // Detect language for code blocks
 const detectLanguage = (code) => {
@@ -30,7 +29,10 @@ const speakText = (text, onStart, onEnd) => {
   utterance.pitch = 1;
   if (onStart) utterance.onstart = onStart;
   if (onEnd) utterance.onend = onEnd;
-  utterance.onerror = (event) => { console.error("Speech error:", event); if (onEnd) onEnd(); };
+  utterance.onerror = (event) => {
+    console.error("Speech error:", event);
+    if (onEnd) onEnd();
+  };
   window.speechSynthesis.speak(utterance);
   return true;
 };
@@ -78,48 +80,25 @@ const LearnWithoutLimitsAI = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [animationState, setAnimationState] = useState("idle");
   const [conversationHistory, setConversationHistory] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [progress, setProgress] = useState({ topics: [] });
   const [showActions, setShowActions] = useState(false);
+  const [streamingState, setStreamingState] = useState({
+    tempText: "",
+    currentCodeBlock: "",
+    codeLanguage: "",
+    isInCodeBlock: false,
+  });
+  const [showCodeSections, setShowCodeSections] = useState({});
 
   const chatContainerRef = useRef(null);
   const controllerRef = useRef(null);
   const textareaRef = useRef(null);
-  const lottieRef = useRef(null);
-  const presenterRef = useRef(null);
   const recognitionRef = useRef(null);
   const localStorageKey = "LearnWithoutLimitsChat";
   const historyStorageKey = "LearnWithoutLimitsHistory";
   const progressStorageKey = "LearnWithoutLimitsProgress";
-
-  // Animation paths with fallback SVGs
-  const animationPaths = {
-    idle: {
-      lottie: "https://assets5.lottiefiles.com/packages/lf20_5itoujzw.json",
-      fallback: (
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="40" fill="#1e40af" />
-          <path d="M30,40 Q50,60 70,40" stroke="#fff" strokeWidth="3" fill="none" />
-          <circle cx="40" cy="35" r="5" fill="#fff" />
-          <circle cx="60" cy="35" r="5" fill="#fff" />
-          <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="5 50 50" dur="1s" repeatCount="indefinite" additive="sum" />
-        </svg>
-      ),
-    },
-    reading: {
-      lottie: "https://assets5.lottiefiles.com/packages/lf20_ws4owbvr.json",
-      fallback: (
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <rect x="30" y="20" width="40" height="60" rx="5" fill="#1e40af" />
-          <path d="M40,30 L60,30 M40,40 L60,40 M40,50 L60,50" stroke="#fff" strokeWidth="2" />
-          <circle cx="50" cy="70" r="5" fill="#fff" />
-          <animateTransform attributeName="transform" type="translate" values="0,0; 0,-2; 0,0" dur="2s" repeatCount="indefinite" />
-        </svg>
-      ),
-    },
-  };
 
   useEffect(() => {
     const savedChat = localStorage.getItem(localStorageKey);
@@ -167,6 +146,7 @@ const LearnWithoutLimitsAI = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
+      console.log("Scrolling to bottom");
       chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
     }
   }, [chatMessages, loading]);
@@ -176,7 +156,6 @@ const LearnWithoutLimitsAI = () => {
       controllerRef.current?.abort();
       window.speechSynthesis?.cancel();
       if (recognitionRef.current) recognitionRef.current.stop();
-      lottie.destroy();
     };
   }, []);
 
@@ -187,63 +166,30 @@ const LearnWithoutLimitsAI = () => {
     }
   }, [message]);
 
-  useEffect(() => {
-    if (lottieRef.current) {
-      lottie.loadAnimation({
-        container: lottieRef.current,
-        renderer: "svg",
-        loop: true,
-        autoplay: true,
-        path: "https://assets10.lottiefiles.com/packages/lf20_wa2wvajb.json",
-      });
-    }
-    return () => lottie.destroy();
-  }, []);
-
-  useEffect(() => {
-    if (presenterRef.current) {
-      lottie.destroy();
-      const currentAnimation = animationPaths[animationState] || animationPaths.idle;
-
-      try {
-        const anim = lottie.loadAnimation({
-          container: presenterRef.current,
-          renderer: "svg",
-          loop: true,
-          autoplay: true,
-          path: currentAnimation.lottie,
-        });
-        anim.addEventListener("DOMLoaded", () => console.log("Animation loaded successfully"));
-        anim.addEventListener("loaderror", (e) => {
-          console.error("Failed to load animation:", e);
-          presenterRef.current.innerHTML = "";
-          presenterRef.current.appendChild(currentAnimation.fallback);
-        });
-      } catch (error) {
-        console.error("Lottie loading error:", error);
-        presenterRef.current.innerHTML = "";
-        presenterRef.current.appendChild(currentAnimation.fallback);
-      }
-    }
-  }, [animationState]);
-
   const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : prev === "light" ? "neon" : "dark"));
 
   const appendMessage = useCallback(
-    (text, className, code = null, isTyping = false) =>
-      setChatMessages((prev) => [...prev.slice(-150), { id: Date.now(), text, className, code, timestamp: new Date().toISOString(), isTyping }]),
+    (text, className, code = null, isTyping = false) => {
+      setChatMessages((prev) => {
+        const newMessages = [...prev.slice(-150), { id: Date.now(), text, className, code, timestamp: new Date().toISOString(), isTyping }];
+        console.log("New chatMessages:", JSON.stringify(newMessages, null, 2));
+        return newMessages;
+      });
+    },
     []
   );
 
   const updateLastMessage = useCallback(
-    (text, code = null, isTyping = false) =>
+    (text, code = null, isTyping = false) => {
       setChatMessages((prev) => {
         const updated = [...prev];
         if (updated.length) {
           updated[updated.length - 1] = { ...updated[updated.length - 1], text, code, timestamp: new Date().toISOString(), isTyping };
+          console.log("Updated last message:", JSON.stringify(updated[updated.length - 1], null, 2));
         }
         return updated;
-      }),
+      });
+    },
     []
   );
 
@@ -274,19 +220,8 @@ const LearnWithoutLimitsAI = () => {
       codeBlocks.push({ language, code });
       remainingText = remainingText.replace(match[0], "");
     }
+    console.log("Extracted code:", JSON.stringify(codeBlocks, null, 2), "Remaining text:", remainingText);
     return { code: codeBlocks.length ? codeBlocks : null, text: remainingText.trim() || "" };
-  };
-
-  const mockAIResponse = async function* (prompt) {
-    const responses = {
-      hello: "Greetings! How can I assist you today?",
-      code: "Here's a sample Python code snippet:\n```python\ndef greet(name):\n    return f'Hello, {name}!'\n```",
-    };
-    const responseText = responses[prompt.toLowerCase()] || `You asked: ${prompt}. Here's a professional response to guide your learning.`;
-    for (let i = 0; i < responseText.length; i += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      yield responseText.slice(0, i + 10);
-    }
   };
 
   const generate = async () => {
@@ -294,28 +229,126 @@ const LearnWithoutLimitsAI = () => {
     const userMessage = message;
     setMessage("");
     setLoading(true);
-    setAnimationState("reading");
     appendMessage(userMessage, "user-message");
     controllerRef.current = new AbortController();
+    setStreamingState({
+      tempText: "",
+      currentCodeBlock: "",
+      codeLanguage: "",
+      isInCodeBlock: false,
+    });
 
     try {
-      appendMessage("", "ai-message", null, true);
-      const responseStream = mockAIResponse(userMessage);
-      let fullText = "";
-      for await (const chunk of responseStream) {
-        fullText += chunk;
-        updateLastMessage(fullText, null, true);
+      // Mock response for testing (uncomment to test without real API)
+      /*
+      let mockResponse = `
+        data: {"response":"Hello, this is a response!"}
+        data: {"response":" Here's some code:"}
+        data: {"response":"```javascript\\nconsole.log('Test');\\n```"}
+        data: {"response":"End of response."}
+      `;
+      const mockReader = {
+        read: async () => {
+          if (!mockResponse) return { done: true };
+          const chunk = mockResponse;
+          mockResponse = "";
+          return { value: new TextEncoder().encode(chunk), done: false };
+        },
+      };
+      */
+
+      const response = await fetch("https://ai.bitecodes.com/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "stable-code:3b", prompt: userMessage, stream: true }),
+        signal: controllerRef.current.signal,
+      });
+
+      console.log("Response status:", response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Response error:", errorText);
+        throw new Error("Failed to fetch response");
       }
-      const { code, text } = extractCodeFromText(fullText);
-      updateLastMessage(text, code);
-      setProgress((prev) => ({ ...prev, topics: [...new Set([...prev.topics, userMessage.toLowerCase()])] }));
+
+      const reader = response.body.getReader(); // Replace with mockReader for testing
+      const decoder = new TextDecoder();
+      appendMessage("", "ai-message", null, true);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          const { code, text } = extractCodeFromText(
+            streamingState.tempText +
+              (streamingState.isInCodeBlock ? `\n\`\`\`\n${streamingState.currentCodeBlock}\n\`\`\`` : "")
+          );
+          console.log("Final extracted:", JSON.stringify({ code, text }, null, 2));
+          updateLastMessage(text, code);
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        console.log("Chunk:", chunk);
+        chunk.split("\n").forEach((line) => {
+          if (line.startsWith("data: ")) {
+            try {
+              const json = JSON.parse(line.replace("data: ", "").trim());
+              console.log("Parsed JSON:", JSON.stringify(json, null, 2));
+              if (json && json.response) {
+                const text = json.response;
+                setStreamingState((prev) => {
+                  let { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prev;
+                  console.log("Processing text:", text);
+
+                  if (text.includes("```")) {
+                    if (isInCodeBlock) {
+                      isInCodeBlock = false;
+                      const { code, text: extractedText } = extractCodeFromText(
+                        `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\``
+                      );
+                      tempText += extractedText;
+                      updateLastMessage(tempText, code, true);
+                      currentCodeBlock = "";
+                      codeLanguage = "";
+                    } else {
+                      isInCodeBlock = true;
+                      const langMatch = text.match(/```(\w+)/);
+                      codeLanguage = langMatch ? langMatch[1] : detectLanguage(text);
+                    }
+                  } else if (isInCodeBlock) {
+                    currentCodeBlock += text + "\n";
+                  } else {
+                    tempText += text;
+                    updateLastMessage(tempText, null, true);
+                  }
+
+                  return { tempText, currentCodeBlock, codeLanguage, isInCodeBlock };
+                });
+              } else {
+                console.warn("No response field in JSON:", json);
+              }
+            } catch (e) {
+              console.error("JSON parse error:", e, "Line:", line);
+            }
+          }
+        });
+      }
     } catch (error) {
-      if (error.name === "AbortError") updateLastMessage("[Stopped]");
-      else appendMessage("⚠️ An error occurred. Please try again.", "ai-message");
+      console.error("Generate error:", error);
+      if (error.name === "AbortError") {
+        updateLastMessage(streamingState.tempText + "\n[Stopped by user]");
+      } else {
+        appendMessage("⚠️ An error occurred. Please try again.", "ai-message");
+      }
     } finally {
       setLoading(false);
-      setAnimationState("idle");
       controllerRef.current = null;
+      setStreamingState({
+        tempText: "",
+        currentCodeBlock: "",
+        codeLanguage: "",
+        isInCodeBlock: false,
+      });
     }
   };
 
@@ -323,8 +356,7 @@ const LearnWithoutLimitsAI = () => {
     if (controllerRef.current) {
       controllerRef.current.abort();
       setLoading(false);
-      updateLastMessage("[Stopped]");
-      setAnimationState("idle");
+      updateLastMessage(streamingState.tempText + "\n[Stopped by user]");
     }
   };
 
@@ -339,19 +371,12 @@ const LearnWithoutLimitsAI = () => {
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      setAnimationState("idle");
       return;
     }
     const success = speakText(
       text,
-      () => {
-        setIsSpeaking(true);
-        setAnimationState("reading");
-      },
-      () => {
-        setIsSpeaking(false);
-        setAnimationState("idle");
-      }
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
     );
     if (!success) showToast("❌ Speech failed");
   };
@@ -386,20 +411,6 @@ const LearnWithoutLimitsAI = () => {
     showToast("🗑️ Deleted!");
   };
 
-  const exportAsPDF = () => {
-    const element = document.createElement("div");
-    element.innerHTML = chatMessages
-      .map(
-        (msg) =>
-          `<div><strong>${msg.className === "user-message" ? "You" : "AI"} (${new Date(msg.timestamp).toLocaleString()}):</strong><p>${
-            msg.text
-          }</p>${msg.code ? msg.code.map((c) => `<pre>${c.code}</pre>`).join("") : ""}</div>`
-      )
-      .join("");
-    window.html2pdf().from(element).set({ filename: `LearnWithoutLimits_${Date.now()}.pdf`, margin: 10, jsPDF: { unit: "mm", format: "a4" } }).save();
-    showToast("📄 Exported!");
-  };
-
   const startVoiceInput = () => {
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
       showToast("❌ Speech recognition not supported");
@@ -428,13 +439,11 @@ const LearnWithoutLimitsAI = () => {
     }
   };
 
-  // Display prompt with animation
-  const displayPromptWithAnimation = (prompt) => {
-    if (prompt.trim()) {
-      setAnimationState("reading");
-    } else {
-      setAnimationState("idle");
-    }
+  const toggleCodeSection = (messageId) => {
+    setShowCodeSections((prev) => ({
+      ...prev,
+      [messageId]: !prev[messageId],
+    }));
   };
 
   return (
@@ -448,10 +457,10 @@ const LearnWithoutLimitsAI = () => {
       <style>{`
         @keyframes pulse-glow { 0%, 100% { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); } 50% { filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.8)); } }
         .glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .presenter-glow { animation: pulse-glow 2s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.7)); }
         .professional-bg { background: linear-gradient(135deg, #111827, #1f2937); }
         textarea::-webkit-scrollbar { display: none; }
         textarea { scrollbar-width: none; -ms-overflow-style: none; }
+        .code-section { max-height: 300px; overflow-y: auto; }
       `}</style>
 
       <div className="w-full max-w-screen-xl flex justify-center">
@@ -543,26 +552,13 @@ const LearnWithoutLimitsAI = () => {
 
           <div className="flex flex-col h-[calc(85vh-72px)] sm:h-[calc(90vh-80px)]">
             <div ref={chatContainerRef} className={`flex-grow overflow-y-auto p-6 ${themes[theme].chat} overscroll-contain relative`}>
-              <motion.div
-                className="absolute right-4 bottom-4 w-32 h-32 glow"
-                initial={{ x: 24 }}
-                animate={{ x: animationState === "idle" ? 5 : 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                ref={lottieRef}
-              ></motion.div>
-              <motion.div
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-64 h-64 rounded-lg overflow-hidden presenter-glow z-10"
-                ref={presenterRef}
-                style={{ backgroundColor: "transparent" }}
-              >
-                <div className="w-full h-full flex items-center justify-center">
-                  {animationState === "idle" && <div className="text-white text-center">Loading animation...</div>}
-                </div>
-              </motion.div>
               <AnimatePresence>
                 {chatMessages.map((msg) => (
                   <motion.div
                     key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                     className={`mb-4 flex ${msg.className === "user-message" ? "justify-end" : "justify-start"} items-end max-w-[80%]`}
                   >
                     {msg.className === "ai-message" && (
@@ -594,27 +590,50 @@ const LearnWithoutLimitsAI = () => {
                           )}
                         </div>
                       )}
-                      {msg.code &&
-                        msg.code.map(({ language, code }, i) => (
-                          <div key={i} className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} relative`}>
-                            <SyntaxHighlighter
-                              language={language}
-                              style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
-                              customStyle={{ fontSize: "0.875rem", margin: 0, padding: "0.5rem" }}
-                              showLineNumbers
-                            >
-                              {code}
-                            </SyntaxHighlighter>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => copyToClipboard(code)}
-                              className="bg-gray-600/50 text-gray-200 absolute top-2 right-2 p-1.5 rounded-md hover:bg-indigo-500/20"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        ))}
+                      {msg.code && msg.code.length > 0 && (
+                        <div className="mt-2">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => toggleCodeSection(msg.id)}
+                            className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
+                          >
+                            <Code className="w-4 h-4 mr-2 text-white" />
+                            {showCodeSections[msg.id] ? "Hide Code" : "Show Code"}
+                          </motion.button>
+                          <AnimatePresence>
+                            {showCodeSections[msg.id] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} code-section relative`}
+                              >
+                                {msg.code.map(({ language, code }, i) => (
+                                  <div key={i} className="relative mb-2">
+                                    <SyntaxHighlighter
+                                      language={language}
+                                      style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
+                                      customStyle={{ fontSize: "0.875rem", margin: 0, padding: "0.5rem" }}
+                                      showLineNumbers
+                                    >
+                                      {code}
+                                    </SyntaxHighlighter>
+                                    <motion.button
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={() => copyToClipboard(code)}
+                                      className="bg-gray-600/50 text-gray-200 absolute top-2 right-2 p-1.5 rounded-md hover:bg-indigo-500/20"
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </motion.button>
+                                  </div>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
                     </div>
                     {msg.className === "user-message" && (
                       <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold ml-3 shrink-0">
@@ -657,10 +676,7 @@ const LearnWithoutLimitsAI = () => {
                 <motion.textarea
                   ref={textareaRef}
                   value={message}
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                    displayPromptWithAnimation(e.target.value);
-                  }}
+                  onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
                   rows={1}
                   className={`flex-grow p-4 rounded-xl border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${themes[theme].input} text-base bg-gray-800/90 text-white placeholder-gray-500`}
@@ -730,14 +746,6 @@ const LearnWithoutLimitsAI = () => {
                           className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
                         >
                           <Save className="w-4 h-4 mr-2 text-white" /> Save
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={exportAsPDF}
-                          className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
-                        >
-                          <Download className="w-4 h-4 mr-2 text-white" /> Export
                         </motion.button>
                       </motion.div>
                     )}
