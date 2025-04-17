@@ -104,11 +104,31 @@ const LearnWithoutLimitsAI = () => {
     const savedChat = localStorage.getItem(localStorageKey);
     if (savedChat) {
       try {
-        setChatMessages(JSON.parse(savedChat));
+        const parsedChat = JSON.parse(savedChat);
+        setChatMessages(parsedChat);
+  
+        const initialCodeSections = {};
+        parsedChat.forEach((msg) => {
+          if (msg.code && msg.code.length > 0) {
+            initialCodeSections[msg.id] = true;
+          }
+        });
+        setShowCodeSections(initialCodeSections);
       } catch (e) {
         console.error("Error loading chat:", e);
       }
     }
+  
+    // Load saved code section toggle states
+    const savedCodeSections = localStorage.getItem("CodeSectionStates");
+    if (savedCodeSections) {
+      try {
+        setShowCodeSections(JSON.parse(savedCodeSections));
+      } catch (e) {
+        console.error("Error loading code section states:", e);
+      }
+    }
+  
     const welcomeMessage = {
       id: Date.now(),
       text: "Welcome to Learn Without Limits AI. How can I assist you today?",
@@ -116,8 +136,11 @@ const LearnWithoutLimitsAI = () => {
       code: null,
       timestamp: new Date().toISOString(),
     };
-    setTimeout(() => setChatMessages([welcomeMessage]), 500);
-
+    setTimeout(() => {
+      setChatMessages((prev) => (prev.length === 0 ? [welcomeMessage] : prev));
+      setShowCodeSections((prev) => ({ ...prev, [welcomeMessage.id]: false }));
+    }, 500);
+  
     const savedProgress = localStorage.getItem(progressStorageKey);
     if (savedProgress) {
       try {
@@ -146,7 +169,6 @@ const LearnWithoutLimitsAI = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      console.log("Scrolling to bottom");
       chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
     }
   }, [chatMessages, loading]);
@@ -170,11 +192,24 @@ const LearnWithoutLimitsAI = () => {
 
   const appendMessage = useCallback(
     (text, className, code = null, isTyping = false) => {
+      const newMessage = {
+        id: Date.now(),
+        text,
+        className,
+        code,
+        timestamp: new Date().toISOString(),
+        isTyping,
+      };
+
       setChatMessages((prev) => {
-        const newMessages = [...prev.slice(-150), { id: Date.now(), text, className, code, timestamp: new Date().toISOString(), isTyping }];
-        console.log("New chatMessages:", JSON.stringify(newMessages, null, 2));
+        const newMessages = [...prev.slice(-150), newMessage];
         return newMessages;
       });
+
+      setShowCodeSections((prev) => ({
+        ...prev,
+        [newMessage.id]: code && code.length > 0 ? true : false,
+      }));
     },
     []
   );
@@ -182,11 +217,23 @@ const LearnWithoutLimitsAI = () => {
   const updateLastMessage = useCallback(
     (text, code = null, isTyping = false) => {
       setChatMessages((prev) => {
+        if (!prev.length) return prev;
         const updated = [...prev];
-        if (updated.length) {
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text, code, timestamp: new Date().toISOString(), isTyping };
-          console.log("Updated last message:", JSON.stringify(updated[updated.length - 1], null, 2));
-        }
+        const lastMessage = updated[updated.length - 1];
+        const updatedMessage = {
+          ...lastMessage,
+          text,
+          code,
+          timestamp: new Date().toISOString(),
+          isTyping,
+        };
+        updated[updated.length - 1] = updatedMessage;
+
+        setShowCodeSections((prevSections) => ({
+          ...prevSections,
+          [updatedMessage.id]: code && code.length > 0 ? true : prevSections[updatedMessage.id] || false,
+        }));
+
         return updated;
       });
     },
@@ -208,22 +255,34 @@ const LearnWithoutLimitsAI = () => {
     }, 2000);
   };
 
-  const extractCodeFromText = (text) => {
-    if (!text) return { code: null, text: "" };
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
-    let remainingText = text;
-    const codeBlocks = [];
-    let match;
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      const language = match[1] || detectLanguage(match[2]);
-      const code = match[2].trim();
-      codeBlocks.push({ language, code });
-      remainingText = remainingText.replace(match[0], "");
-    }
-    console.log("Extracted code:", JSON.stringify(codeBlocks, null, 2), "Remaining text:", remainingText);
-    return { code: codeBlocks.length ? codeBlocks : null, text: remainingText.trim() || "" };
-  };
-
+  // Replace the extractCodeFromText function with this improved version
+        const extractCodeFromText = (text) => {
+          if (!text) return { code: null, text: "" };
+          
+          // Modified regex to properly capture language and code content
+          const codeBlockRegex = /```([\w]*)\n?([\s\S]*?)\n```/g;
+          const codeBlocks = [];
+          let lastIndex = 0;
+          let match;
+          let remainingText = "";
+        
+          while ((match = codeBlockRegex.exec(text)) !== null) {
+            // Get language (default to plaintext if not specified)
+            const language = match[1].trim() || "plaintext";
+            // Get code content directly
+            const code = match[2].trim();
+            
+            codeBlocks.push({ language, code });
+            remainingText += text.slice(lastIndex, match.index);
+            lastIndex = codeBlockRegex.lastIndex;
+          }
+          remainingText += text.slice(lastIndex);
+        
+          return {
+            code: codeBlocks.length ? codeBlocks : null,
+            text: remainingText.trim() || text,
+          };
+        };
   const generate = async () => {
     if (!message.trim()) return;
     const userMessage = message;
@@ -239,24 +298,6 @@ const LearnWithoutLimitsAI = () => {
     });
 
     try {
-      // Mock response for testing (uncomment to test without real API)
-      /*
-      let mockResponse = `
-        data: {"response":"Hello, this is a response!"}
-        data: {"response":" Here's some code:"}
-        data: {"response":"```javascript\\nconsole.log('Test');\\n```"}
-        data: {"response":"End of response."}
-      `;
-      const mockReader = {
-        read: async () => {
-          if (!mockResponse) return { done: true };
-          const chunk = mockResponse;
-          mockResponse = "";
-          return { value: new TextEncoder().encode(chunk), done: false };
-        },
-      };
-      */
-
       const response = await fetch("https://ai.bitecodes.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,79 +305,135 @@ const LearnWithoutLimitsAI = () => {
         signal: controllerRef.current.signal,
       });
 
-      console.log("Response status:", response.status);
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Response error:", errorText);
         throw new Error("Failed to fetch response");
       }
 
-      const reader = response.body.getReader(); // Replace with mockReader for testing
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       appendMessage("", "ai-message", null, true);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          const { code, text } = extractCodeFromText(
-            streamingState.tempText +
-              (streamingState.isInCodeBlock ? `\n\`\`\`\n${streamingState.currentCodeBlock}\n\`\`\`` : "")
-          );
-          console.log("Final extracted:", JSON.stringify({ code, text }, null, 2));
-          updateLastMessage(text, code);
-          break;
-        }
+      // Replace the "while" loop in your generate function with this fixed version:
 
-        const chunk = decoder.decode(value, { stream: true });
-        console.log("Chunk:", chunk);
-        chunk.split("\n").forEach((line) => {
-          if (line.startsWith("data: ")) {
-            try {
-              const json = JSON.parse(line.replace("data: ", "").trim());
-              console.log("Parsed JSON:", JSON.stringify(json, null, 2));
-              if (json && json.response) {
-                const text = json.response;
-                setStreamingState((prev) => {
-                  let { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prev;
-                  console.log("Processing text:", text);
-
-                  if (text.includes("```")) {
-                    if (isInCodeBlock) {
-                      isInCodeBlock = false;
-                      const { code, text: extractedText } = extractCodeFromText(
-                        `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\``
-                      );
-                      tempText += extractedText;
-                      updateLastMessage(tempText, code, true);
-                      currentCodeBlock = "";
-                      codeLanguage = "";
-                    } else {
-                      isInCodeBlock = true;
-                      const langMatch = text.match(/```(\w+)/);
-                      codeLanguage = langMatch ? langMatch[1] : detectLanguage(text);
-                    }
-                  } else if (isInCodeBlock) {
-                    currentCodeBlock += text + "\n";
-                  } else {
-                    tempText += text;
-                    updateLastMessage(tempText, null, true);
-                  }
-
-                  return { tempText, currentCodeBlock, codeLanguage, isInCodeBlock };
-                });
-              } else {
-                console.warn("No response field in JSON:", json);
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) {
+    // Ensure any remaining code block is properly closed and processed
+    setStreamingState(prevState => {
+      const { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prevState;
+      
+      // Create final message content with proper code formatting
+      const finalText = tempText + 
+        (isInCodeBlock ? 
+          `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\`` : 
+          "");
+      
+      const { code, text } = extractCodeFromText(finalText);
+      
+      // Update with finalized content
+      updateLastMessage(text, code, false);
+      
+      // Save the final state to localStorage to ensure persistence
+      setChatMessages(currentMessages => {
+        const updatedMessages = currentMessages.map(msg => 
+          msg.isTyping ? { ...msg, isTyping: false } : msg
+        );
+        localStorage.setItem(localStorageKey, JSON.stringify(updatedMessages));
+        return updatedMessages;
+      });
+      
+      return { tempText: "", currentCodeBlock: "", codeLanguage: "", isInCodeBlock: false };
+    });
+    
+    break;
+  }
+  
+  const chunk = decoder.decode(value, { stream: true });
+  chunk.split("\n").forEach((line) => {
+    if (line.startsWith("data: ")) {
+      try {
+        const json = JSON.parse(line.replace("data: ", "").trim());
+        if (json && json.response) {
+          const text = json.response;
+          setStreamingState((prev) => {
+            let { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prev;
+          
+            // Check for code block markers
+            if (text.includes("```")) {
+              const parts = text.split("```");
+              
+              if (isInCodeBlock) {
+                // We're in a code block and found a closing marker
+                isInCodeBlock = false;
+                currentCodeBlock += parts[0]; // Add text before closing marker
+                
+                // Create proper code block format without including language as part of code
+                const { code, text: extractedText } = extractCodeFromText(
+                  `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\``
+                );
+                tempText += extractedText;
+                updateLastMessage(tempText, code, true);
+                
+                // Handle any text after the code block
+                const afterCode = parts.slice(1).join("```");
+                if (afterCode) tempText += afterCode;
+                
+                currentCodeBlock = "";
+                codeLanguage = "";
+              } else if (parts.length > 1) {
+                // We're not in a code block and found an opening marker
+                isInCodeBlock = true;
+                tempText += parts[0]; // Add text before opening marker
+                
+                // Extract language properly
+                // Look for language identifier at the start of the code block
+                const langMatch = parts[1].match(/^(\w+)\n?/);
+                codeLanguage = langMatch ? langMatch[1] : "plaintext";
+                
+                // Remove language identifier from the code content
+                if (langMatch) {
+                  currentCodeBlock = parts[1].substring(langMatch[0].length);
+                } else {
+                  currentCodeBlock = parts[1];
+                }
               }
-            } catch (e) {
-              console.error("JSON parse error:", e, "Line:", line);
+            } else if (isInCodeBlock) {
+              // We're in a code block, add content to current code block
+              currentCodeBlock += text;
+              const tempCode = [
+                {
+                  language: codeLanguage || "plaintext",
+                  code: currentCodeBlock,
+                },
+              ];
+              updateLastMessage(tempText, tempCode, true);
+            } else {
+              // Regular text processing
+              tempText += text;
+              updateLastMessage(tempText, null, true);
             }
-          }
-        });
+          
+            return { tempText, currentCodeBlock, codeLanguage, isInCodeBlock };
+          });
+          
+        }
+      } catch (e) {
+        console.error("JSON parse error:", e, "Line:", line);
       }
+    }
+  });
+}
+      
     } catch (error) {
       console.error("Generate error:", error);
       if (error.name === "AbortError") {
-        updateLastMessage(streamingState.tempText + "\n[Stopped by user]");
+        const { code, text } = extractCodeFromText(
+          streamingState.tempText +
+            (streamingState.isInCodeBlock ? `\n\`\`\`${streamingState.codeLanguage}\n${streamingState.currentCodeBlock}\n\`\`\`` : "")
+        );
+        updateLastMessage(text, code, false);
       } else {
         appendMessage("⚠️ An error occurred. Please try again.", "ai-message");
       }
@@ -355,8 +452,6 @@ const LearnWithoutLimitsAI = () => {
   const stopGeneration = () => {
     if (controllerRef.current) {
       controllerRef.current.abort();
-      setLoading(false);
-      updateLastMessage(streamingState.tempText + "\n[Stopped by user]");
     }
   };
 
@@ -398,6 +493,15 @@ const LearnWithoutLimitsAI = () => {
 
   const loadConversation = (item) => {
     setChatMessages(item.messages);
+    const initialCodeSections = {};
+    item.messages.forEach((msg) => {
+      if (msg.code && msg.code.length > 0) {
+        initialCodeSections[msg.id] = true;
+      } else {
+        initialCodeSections[msg.id] = false;
+      }
+    });
+    setShowCodeSections(initialCodeSections);
     setShowSidebar(false);
     showToast("📂 Loaded!");
   };
@@ -440,12 +544,16 @@ const LearnWithoutLimitsAI = () => {
   };
 
   const toggleCodeSection = (messageId) => {
-    setShowCodeSections((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
+    setShowCodeSections((prev) => {
+      const newState = {
+        ...prev,
+        [messageId]: !prev[messageId]
+      };
+      // Force update message storage to ensure toggle state persists
+      localStorage.setItem("CodeSectionStates", JSON.stringify(newState));
+      return newState;
+    });
   };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -559,7 +667,7 @@ const LearnWithoutLimitsAI = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className={`mb-4 flex ${msg.className === "user-message" ? "justify-end" : "justify-start"} items-end max-w-[80%]`}
+                    className={`mb-4 flex ${msg.className === "user-message" ? "justify-end" : "justify-start"} items-end max-w-[80%] ${msg.className === "user-message" ? "ml-auto" : "mr-auto"}`}
                   >
                     {msg.className === "ai-message" && (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white text-sm font-bold mr-3 shrink-0">
@@ -591,168 +699,170 @@ const LearnWithoutLimitsAI = () => {
                         </div>
                       )}
                       {msg.code && msg.code.length > 0 && (
-                        <div className="mt-2">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleCodeSection(msg.id)}
-                            className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
-                          >
-                            <Code className="w-4 h-4 mr-2 text-white" />
-                            {showCodeSections[msg.id] ? "Hide Code" : "Show Code"}
-                          </motion.button>
-                          <AnimatePresence>
-                            {showCodeSections[msg.id] && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} code-section relative`}
+                <div className="mt-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleCodeSection(msg.id)}
+                    className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
+                  >
+                    <Code className="w-4 h-4 mr-2 text-white" />
+                    {showCodeSections[msg.id] ? "Hide Code" : "Show Code"}
+                  </motion.button>
+                  
+                  <AnimatePresence>
+                    {showCodeSections[msg.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} code-section relative`}
+                      >
+                        {msg.code.map(({ language, code }, i) => {
+                          // Critical fix: Make sure language is processed correctly
+                          const displayLanguage = language ? language.trim() : "plaintext";
+                          
+                          // Critical fix: Clean the code content to remove any language prefix
+                          // This ensures the language identifier isn't showing up as first line
+                          const cleanedCode = code.replace(new RegExp(`^${displayLanguage}\\s*`), '');
+                          
+                          return (
+                            <div key={i} className="relative mb-2">
+                              <div className="font-bold text-sm text-gray-300">
+                                {displayLanguage.toUpperCase()}
+                              </div>
+                              <SyntaxHighlighter
+                                language={displayLanguage}
+                                style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
+                                customStyle={{ fontSize: "0.875rem", margin: 0, padding: "0.5rem" }}
+                                showLineNumbers
                               >
-                                {msg.code.map(({ language, code }, i) => (
-                                  <div key={i} className="relative mb-2">
-                                    <SyntaxHighlighter
-                                      language={language}
-                                      style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
-                                      customStyle={{ fontSize: "0.875rem", margin: 0, padding: "0.5rem" }}
-                                      showLineNumbers
-                                    >
-                                      {code}
-                                    </SyntaxHighlighter>
-                                    <motion.button
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      onClick={() => copyToClipboard(code)}
-                                      className="bg-gray-600/50 text-gray-200 absolute top-2 right-2 p-1.5 rounded-md hover:bg-indigo-500/20"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </motion.button>
-                                  </div>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                                {cleanedCode}
+                              </SyntaxHighlighter>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => copyToClipboard(cleanedCode)}
+                                className="absolute top-2 right-2 p-1 bg-gray-800/70 rounded-md text-gray-300 hover:text-white hover:bg-gray-700/70"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </motion.button>
+                            </div>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                         </div>
                       )}
                     </div>
                     {msg.className === "user-message" && (
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold ml-3 shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-700 to-gray-800 flex items-center justify-center text-white text-sm font-bold ml-3 shrink-0">
                         You
                       </div>
                     )}
                   </motion.div>
                 ))}
               </AnimatePresence>
-              {loading && (
+              {loading && chatMessages.length && !chatMessages[chatMessages.length - 1].isTyping && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex items-center text-sm text-gray-400 mt-4 ml-14 max-w-[80%]"
+                  exit={{ opacity: 0 }}
+                  className="flex justify-center items-center py-4"
                 >
-                  <div className="flex space-x-1 mr-2">
-                    <motion.div
-                      animate={{ scale: [1, 1.4, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.2 }}
-                      className="w-2 h-2 rounded-full bg-blue-400"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 1.4, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.2, delay: 0.2 }}
-                      className="w-2 h-2 rounded-full bg-indigo-400"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 1.4, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.2, delay: 0.4 }}
-                      className="w-2 h-2 rounded-full bg-purple-400"
-                    />
-                  </div>
-                  Processing...
+                  <div className="w-6 h-6 rounded-full glow bg-blue-500 animate-pulse"></div>
                 </motion.div>
               )}
             </div>
 
-            <div className={`p-6 ${themes[theme].header} backdrop-blur-xl border-t border-gray-800/30 flex flex-col items-center`}>
-              <div className="flex items-center space-x-3 w-full max-w-2xl">
-                <motion.textarea
+            <div className={`p-4 relative border-t ${themes[theme].header} backdrop-blur-xl border-gray-800/30`}>
+              <div className="relative">
+                <textarea
                   ref={textareaRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  rows={1}
-                  className={`flex-grow p-4 rounded-xl border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${themes[theme].input} text-base bg-gray-800/90 text-white placeholder-gray-500`}
-                  placeholder="Ask anything..."
-                  style={{ minHeight: "50px", maxHeight: "150px" }}
-                  whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={loading ? stopGeneration : generate}
-                  className={`p-4 rounded-xl font-semibold shadow-lg flex items-center justify-center min-w-[100px] ${
-                    loading
-                      ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/20"
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/20"
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <Square className="w-5 h-5 mr-2" />
-                      Stop
-                    </>
+                  placeholder="Ask me anything..."
+                  className={`w-full p-4 pr-36 rounded-xl resize-none ${themes[theme].input} transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/70`}
+                  style={{ minHeight: "60px", maxHeight: "150px" }}
+                ></textarea>
+                <div className="absolute right-2 bottom-2 flex space-x-2">
+                  {isRecording ? (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={stopVoiceInput}
+                      className="p-2 rounded-full bg-red-500 text-white"
+                    >
+                      <Square className="w-5 h-5" />
+                    </motion.button>
                   ) : (
-                    <>
-                      <Send className="w-5 h-5 mr-2" />
-                      Send
-                    </>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={startVoiceInput}
+                      className={`p-2 rounded-full ${themes[theme].button}`}
+                    >
+                      <Mic className="w-5 h-5 text-white" />
+                    </motion.button>
                   )}
-                </motion.button>
-                <div className="relative">
+
+                  <div className="relative">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowActions(!showActions)}
+                      className={`p-2 rounded-full ${themes[theme].button}`}
+                    >
+                      <ChevronDown className={`w-5 h-5 text-white transition-all duration-300 ${showActions ? "transform rotate-180" : ""}`} />
+                    </motion.button>
+                    <AnimatePresence>
+                      {showActions && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className={`absolute bottom-full right-0 mb-2 p-2 rounded-lg ${themes[theme].sidebar} shadow-lg z-10 backdrop-blur-xl`}
+                        >
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={saveConversation}
+                            className={`p-2 flex items-center justify-center ${themes[theme].button} mb-2 w-full rounded-md`}
+                          >
+                            <Save className="w-4 h-4 mr-2 text-white" />
+                            <span className="text-white text-sm">Save Chat</span>
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              localStorage.removeItem(localStorageKey);
+                              setChatMessages([]);
+                              setShowCodeSections({});
+                              showToast("🧹 Cleared chat!");
+                            }}
+                            className={`p-2 flex items-center justify-center bg-red-500/70 w-full rounded-md`}
+                          >
+                            <Trash className="w-4 h-4 mr-2 text-white" />
+                            <span className="text-white text-sm">Clear Chat</span>
+                          </motion.button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowActions(!showActions)}
-                    className={`p-4 rounded-xl ${themes[theme].button}`}
+                    onClick={() => (loading ? stopGeneration() : generate())}
+                    className="p-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
                   >
-                    <ChevronDown className="w-5 h-5 text-white" />
+                    {loading ? <Square className="w-5 h-5" /> : <Send className="w-5 h-5" />}
                   </motion.button>
-                  <AnimatePresence>
-                    {showActions && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className={`absolute bottom-full right-0 mb-2 p-2 rounded-xl ${themes[theme].card} shadow-lg flex flex-col space-y-2 bg-gray-800/90 text-white`}
-                      >
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => speakMessage(message || chatMessages[chatMessages.length - 1]?.text)}
-                          className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
-                        >
-                          <Volume2 className="w-4 h-4 mr-2 text-white" /> Speak
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={isRecording ? stopVoiceInput : startVoiceInput}
-                          className={`flex items-center p-2 rounded-md ${isRecording ? "bg-red-500/70 text-red-200" : themes[theme].button}`}
-                        >
-                          <Mic className="w-4 h-4 mr-2 text-white" /> {isRecording ? "Stop" : "Voice"}
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={saveConversation}
-                          className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
-                        >
-                          <Save className="w-4 h-4 mr-2 text-white" /> Save
-                        </motion.button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-center text-gray-400">Powered by AI</div>
             </div>
           </div>
         </motion.div>
