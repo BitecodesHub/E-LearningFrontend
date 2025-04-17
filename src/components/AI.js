@@ -4,18 +4,11 @@ import { Copy, Menu, X, Send, Square, Volume2, Save, Trash, Palette, Mic, Chevro
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-// Detect language for code blocks
-const detectLanguage = (code) => {
-  if (!code || typeof code !== "string") return "plaintext";
-  if (code.includes("public class") || code.includes("private void")) return "java";
-  if (code.includes("def ") || code.includes("print(")) return "python";
-  if (code.includes("console.log") || code.includes("function ")) return "javascript";
-  if (code.includes("#include") || code.includes("int main(")) return "cpp";
-  if (code.includes("<html") || code.includes("<!DOCTYPE")) return "html";
-  if (code.includes("SELECT ") && code.includes(" FROM ")) return "sql";
-  if (code.includes("using namespace") || code.includes("std::")) return "cpp";
-  if (code.includes("package ") || code.includes("func ")) return "go";
-  return "plaintext";
+// Simplified language detection - uses first line as language identifier
+const detectLanguage = (firstLine) => {
+  if (!firstLine) return 'text';
+  const lang = firstLine.trim().toLowerCase();
+  return lang || 'text';
 };
 
 // Text-to-speech function
@@ -100,79 +93,66 @@ const LearnWithoutLimitsAI = () => {
   const historyStorageKey = "LearnWithoutLimitsHistory";
   const progressStorageKey = "LearnWithoutLimitsProgress";
 
+  // Extract code blocks from text (simplified version)
+  const extractCodeFromText = (text) => {
+    if (!text) return { code: null, text: "" };
+    
+    const codeBlockRegex = /```([\s\S]*?)```/g;
+    const codeBlocks = [];
+    let lastIndex = 0;
+    let match;
+    let remainingText = "";
+    
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      const fullBlock = match[1].trim();
+      const firstNewLine = fullBlock.indexOf('\n');
+      const languageLine = firstNewLine > 0 ? fullBlock.substring(0, firstNewLine) : '';
+      const codeContent = firstNewLine > 0 ? fullBlock.substring(firstNewLine + 1) : fullBlock;
+      
+      codeBlocks.push({
+        language: detectLanguage(languageLine),
+        code: codeContent,
+      });
+      remainingText += text.slice(lastIndex, match.index);
+      lastIndex = codeBlockRegex.lastIndex;
+    }
+    remainingText += text.slice(lastIndex);
+    
+    return {
+      code: codeBlocks.length ? codeBlocks : null,
+      text: remainingText.trim() || text,
+    };
+  };
+
+  // Save message to localStorage whenever chatMessages changes
+  useEffect(() => {
+    localStorage.setItem(localStorageKey, JSON.stringify(chatMessages));
+  }, [chatMessages]);
+
+  // Load saved chat from localStorage on initial render
   useEffect(() => {
     const savedChat = localStorage.getItem(localStorageKey);
     if (savedChat) {
       try {
         const parsedChat = JSON.parse(savedChat);
         setChatMessages(parsedChat);
-  
-        const initialCodeSections = {};
-        parsedChat.forEach((msg) => {
-          if (msg.code && msg.code.length > 0) {
-            initialCodeSections[msg.id] = true;
-          }
-        });
-        setShowCodeSections(initialCodeSections);
       } catch (e) {
         console.error("Error loading chat:", e);
       }
     }
-  
-    // Load saved code section toggle states
-    const savedCodeSections = localStorage.getItem("CodeSectionStates");
-    if (savedCodeSections) {
-      try {
-        setShowCodeSections(JSON.parse(savedCodeSections));
-      } catch (e) {
-        console.error("Error loading code section states:", e);
-      }
-    }
-  
-    const welcomeMessage = {
-      id: Date.now(),
-      text: "Welcome to Learn Without Limits AI. How can I assist you today?",
-      className: "ai-message",
-      code: null,
-      timestamp: new Date().toISOString(),
-    };
-    setTimeout(() => {
-      setChatMessages((prev) => (prev.length === 0 ? [welcomeMessage] : prev));
-      setShowCodeSections((prev) => ({ ...prev, [welcomeMessage.id]: false }));
-    }, 500);
-  
-    const savedProgress = localStorage.getItem(progressStorageKey);
-    if (savedProgress) {
-      try {
-        setProgress(JSON.parse(savedProgress));
-      } catch (e) {
-        console.error("Error loading progress:", e);
-      }
-    }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(chatMessages));
-    localStorage.setItem(progressStorageKey, JSON.stringify(progress));
-  }, [chatMessages, progress]);
-
-  useEffect(() => {
-    const savedHistory = localStorage.getItem(historyStorageKey);
-    if (savedHistory) {
-      try {
-        setConversationHistory(JSON.parse(savedHistory));
-      } catch (e) {
-        console.error("Error loading history:", e);
-      }
-    }
-  }, []);
-
+  // Auto-scroll chat to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
     }
   }, [chatMessages, loading]);
 
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       controllerRef.current?.abort();
@@ -181,6 +161,7 @@ const LearnWithoutLimitsAI = () => {
     };
   }, []);
 
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -188,60 +169,45 @@ const LearnWithoutLimitsAI = () => {
     }
   }, [message]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : prev === "light" ? "neon" : "dark"));
+  const toggleTheme = () => {
+    setTheme(prev => prev === "dark" ? "light" : prev === "light" ? "neon" : "dark");
+  };
 
-  const appendMessage = useCallback(
-    (text, className, code = null, isTyping = false) => {
-      const newMessage = {
-        id: Date.now(),
+  const appendMessage = useCallback((text, className, code = null, isTyping = false) => {
+    const newMessage = {
+      id: Date.now(),
+      text,
+      className,
+      code,
+      timestamp: new Date().toISOString(),
+      isTyping,
+    };
+
+    setChatMessages(prev => [...prev.slice(-150), newMessage]);
+    setShowCodeSections(prev => ({ ...prev, [newMessage.id]: !!code?.length }));
+  }, []);
+
+  const updateLastMessage = useCallback((text, code = null, isTyping = false) => {
+    setChatMessages(prev => {
+      if (!prev.length) return prev;
+      const updated = [...prev];
+      const lastMessage = updated[updated.length - 1];
+      const updatedMessage = {
+        ...lastMessage,
         text,
-        className,
         code,
         timestamp: new Date().toISOString(),
         isTyping,
       };
-
-      setChatMessages((prev) => {
-        const newMessages = [...prev.slice(-150), newMessage];
-        return newMessages;
-      });
-
-      setShowCodeSections((prev) => ({
-        ...prev,
-        [newMessage.id]: code && code.length > 0 ? true : false,
-      }));
-    },
-    []
-  );
-
-  const updateLastMessage = useCallback(
-    (text, code = null, isTyping = false) => {
-      setChatMessages((prev) => {
-        if (!prev.length) return prev;
-        const updated = [...prev];
-        const lastMessage = updated[updated.length - 1];
-        const updatedMessage = {
-          ...lastMessage,
-          text,
-          code,
-          timestamp: new Date().toISOString(),
-          isTyping,
-        };
-        updated[updated.length - 1] = updatedMessage;
-
-        setShowCodeSections((prevSections) => ({
-          ...prevSections,
-          [updatedMessage.id]: code && code.length > 0 ? true : prevSections[updatedMessage.id] || false,
-        }));
-
-        return updated;
-      });
-    },
-    []
-  );
+      updated[updated.length - 1] = updatedMessage;
+      return updated;
+    });
+  }, []);
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => showToast("📋 Copied!")).catch(() => showToast("❌ Copy failed"));
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("📋 Copied!"))
+      .catch(() => showToast("❌ Copy failed"));
   };
 
   const showToast = (message) => {
@@ -255,34 +221,6 @@ const LearnWithoutLimitsAI = () => {
     }, 2000);
   };
 
-  // Replace the extractCodeFromText function with this improved version
-        const extractCodeFromText = (text) => {
-          if (!text) return { code: null, text: "" };
-          
-          // Modified regex to properly capture language and code content
-          const codeBlockRegex = /```([\w]*)\n?([\s\S]*?)\n```/g;
-          const codeBlocks = [];
-          let lastIndex = 0;
-          let match;
-          let remainingText = "";
-        
-          while ((match = codeBlockRegex.exec(text)) !== null) {
-            // Get language (default to plaintext if not specified)
-            const language = match[1].trim() || "plaintext";
-            // Get code content directly
-            const code = match[2].trim();
-            
-            codeBlocks.push({ language, code });
-            remainingText += text.slice(lastIndex, match.index);
-            lastIndex = codeBlockRegex.lastIndex;
-          }
-          remainingText += text.slice(lastIndex);
-        
-          return {
-            code: codeBlocks.length ? codeBlocks : null,
-            text: remainingText.trim() || text,
-          };
-        };
   const generate = async () => {
     if (!message.trim()) return;
     const userMessage = message;
@@ -305,133 +243,111 @@ const LearnWithoutLimitsAI = () => {
         signal: controllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response error:", errorText);
-        throw new Error("Failed to fetch response");
-      }
+      if (!response.ok) throw new Error("Failed to fetch response");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       appendMessage("", "ai-message", null, true);
 
-      // Replace the "while" loop in your generate function with this fixed version:
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) {
-    // Ensure any remaining code block is properly closed and processed
-    setStreamingState(prevState => {
-      const { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prevState;
-      
-      // Create final message content with proper code formatting
-      const finalText = tempText + 
-        (isInCodeBlock ? 
-          `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\`` : 
-          "");
-      
-      const { code, text } = extractCodeFromText(finalText);
-      
-      // Update with finalized content
-      updateLastMessage(text, code, false);
-      
-      // Save the final state to localStorage to ensure persistence
-      setChatMessages(currentMessages => {
-        const updatedMessages = currentMessages.map(msg => 
-          msg.isTyping ? { ...msg, isTyping: false } : msg
-        );
-        localStorage.setItem(localStorageKey, JSON.stringify(updatedMessages));
-        return updatedMessages;
-      });
-      
-      return { tempText: "", currentCodeBlock: "", codeLanguage: "", isInCodeBlock: false };
-    });
-    
-    break;
-  }
-  
-  const chunk = decoder.decode(value, { stream: true });
-  chunk.split("\n").forEach((line) => {
-    if (line.startsWith("data: ")) {
-      try {
-        const json = JSON.parse(line.replace("data: ", "").trim());
-        if (json && json.response) {
-          const text = json.response;
-          setStreamingState((prev) => {
-            let { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prev;
-          
-            // Check for code block markers
-            if (text.includes("```")) {
-              const parts = text.split("```");
-              
-              if (isInCodeBlock) {
-                // We're in a code block and found a closing marker
-                isInCodeBlock = false;
-                currentCodeBlock += parts[0]; // Add text before closing marker
+        const chunk = decoder.decode(value, { stream: true });
+        chunk.split("\n").forEach((line) => {
+          if (line.startsWith("data: ")) {
+            try {
+              const json = JSON.parse(line.replace("data: ", "").trim());
+              if (json?.response) {
+                const text = json.response;
+                setStreamingState(prev => {
+                  let { tempText, currentCodeBlock, codeLanguage, isInCodeBlock } = prev;
                 
-                // Create proper code block format without including language as part of code
-                const { code, text: extractedText } = extractCodeFromText(
-                  `\`\`\`${codeLanguage}\n${currentCodeBlock}\n\`\`\``
-                );
-                tempText += extractedText;
-                updateLastMessage(tempText, code, true);
-                
-                // Handle any text after the code block
-                const afterCode = parts.slice(1).join("```");
-                if (afterCode) tempText += afterCode;
-                
-                currentCodeBlock = "";
-                codeLanguage = "";
-              } else if (parts.length > 1) {
-                // We're not in a code block and found an opening marker
-                isInCodeBlock = true;
-                tempText += parts[0]; // Add text before opening marker
-                
-                // Extract language properly
-                // Look for language identifier at the start of the code block
-                const langMatch = parts[1].match(/^(\w+)\n?/);
-                codeLanguage = langMatch ? langMatch[1] : "plaintext";
-                
-                // Remove language identifier from the code content
-                if (langMatch) {
-                  currentCodeBlock = parts[1].substring(langMatch[0].length);
-                } else {
-                  currentCodeBlock = parts[1];
-                }
+                  if (text.includes("```")) {
+                    const parts = text.split("```");
+                    
+                    if (isInCodeBlock) {
+                      // Closing code block
+                      const finalCode = currentCodeBlock + parts[0];
+                      const { code, text: remainingText } = extractCodeFromText(
+                        `\`\`\`${codeLanguage}\n${finalCode}\n\`\`\``
+                      );
+                      
+                      updateLastMessage(
+                        tempText + remainingText,
+                        code,
+                        true
+                      );
+                      
+                      return {
+                        tempText: tempText + remainingText + (parts.length > 1 ? parts.slice(1).join("```") : ""),
+                        currentCodeBlock: "",
+                        codeLanguage: "",
+                        isInCodeBlock: false,
+                      };
+                    } else {
+                      // Opening code block
+                      const beforeCode = parts[0];
+                      const afterTicks = parts[1] || "";
+                      
+                      // First line is language, rest is code
+                      const langMatch = afterTicks.match(/^([^\n]*)\n?/);
+                      const detectedLanguage = langMatch ? langMatch[1] : 'text';
+                      const codeContent = langMatch ? afterTicks.slice(langMatch[0].length) : afterTicks;
+                      
+                      updateLastMessage(
+                        tempText + beforeCode,
+                        null,
+                        true
+                      );
+                      
+                      return {
+                        tempText: tempText + beforeCode,
+                        currentCodeBlock: codeContent,
+                        codeLanguage: detectedLanguage,
+                        isInCodeBlock: true,
+                      };
+                    }
+                  } else if (isInCodeBlock) {
+                    // Inside code block - just accumulate
+                    updateLastMessage(
+                      tempText,
+                      [{
+                        language: codeLanguage,
+                        code: currentCodeBlock + text,
+                      }],
+                      true
+                    );
+                    return {
+                      ...prev,
+                      currentCodeBlock: currentCodeBlock + text,
+                    };
+                  } else {
+                    // Regular text
+                    updateLastMessage(
+                      tempText + text,
+                      null,
+                      true
+                    );
+                    return {
+                      ...prev,
+                      tempText: tempText + text,
+                    };
+                  }
+                });
               }
-            } else if (isInCodeBlock) {
-              // We're in a code block, add content to current code block
-              currentCodeBlock += text;
-              const tempCode = [
-                {
-                  language: codeLanguage || "plaintext",
-                  code: currentCodeBlock,
-                },
-              ];
-              updateLastMessage(tempText, tempCode, true);
-            } else {
-              // Regular text processing
-              tempText += text;
-              updateLastMessage(tempText, null, true);
+            } catch (e) {
+              console.error("JSON parse error:", e);
             }
-          
-            return { tempText, currentCodeBlock, codeLanguage, isInCodeBlock };
-          });
-          
-        }
-      } catch (e) {
-        console.error("JSON parse error:", e, "Line:", line);
+          }
+        });
       }
-    }
-  });
-}
-      
     } catch (error) {
       console.error("Generate error:", error);
       if (error.name === "AbortError") {
         const { code, text } = extractCodeFromText(
           streamingState.tempText +
-            (streamingState.isInCodeBlock ? `\n\`\`\`${streamingState.codeLanguage}\n${streamingState.currentCodeBlock}\n\`\`\`` : "")
+            (streamingState.isInCodeBlock ? `\`\`\`${streamingState.codeLanguage}\n${streamingState.currentCodeBlock}\n\`\`\`` : "")
         );
         updateLastMessage(text, code, false);
       } else {
@@ -451,7 +367,16 @@ while (true) {
 
   const stopGeneration = () => {
     if (controllerRef.current) {
+      const finalContent = streamingState.tempText + 
+        (streamingState.isInCodeBlock ? 
+          `\`\`\`${streamingState.codeLanguage}\n${streamingState.currentCodeBlock}\n\`\`\`` : 
+          "");
+      
+      const { code, text } = extractCodeFromText(finalContent);
+      updateLastMessage(text, code, false);
+      
       controllerRef.current.abort();
+      setLoading(false);
     }
   };
 
@@ -483,7 +408,7 @@ while (true) {
       messages: chatMessages,
       timestamp: new Date().toISOString(),
     };
-    setConversationHistory((prev) => {
+    setConversationHistory(prev => {
       const updated = [...prev, item];
       localStorage.setItem(historyStorageKey, JSON.stringify(updated));
       return updated;
@@ -494,12 +419,8 @@ while (true) {
   const loadConversation = (item) => {
     setChatMessages(item.messages);
     const initialCodeSections = {};
-    item.messages.forEach((msg) => {
-      if (msg.code && msg.code.length > 0) {
-        initialCodeSections[msg.id] = true;
-      } else {
-        initialCodeSections[msg.id] = false;
-      }
+    item.messages.forEach(msg => {
+      initialCodeSections[msg.id] = !!msg.code?.length;
     });
     setShowCodeSections(initialCodeSections);
     setShowSidebar(false);
@@ -507,8 +428,8 @@ while (true) {
   };
 
   const deleteConversation = (id) => {
-    setConversationHistory((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
+    setConversationHistory(prev => {
+      const updated = prev.filter(item => item.id !== id);
       localStorage.setItem(historyStorageKey, JSON.stringify(updated));
       return updated;
     });
@@ -525,7 +446,7 @@ while (true) {
     recognitionRef.current.lang = "en-US";
     recognitionRef.current.interimResults = true;
     recognitionRef.current.onresult = (event) =>
-      setMessage(Array.from(event.results).map((result) => result[0].transcript).join(""));
+      setMessage(Array.from(event.results).map(result => result[0].transcript).join(""));
     recognitionRef.current.onend = () => setIsRecording(false);
     recognitionRef.current.onerror = (event) => {
       console.error("Speech error:", event);
@@ -544,31 +465,31 @@ while (true) {
   };
 
   const toggleCodeSection = (messageId) => {
-    setShowCodeSections((prev) => {
+    setShowCodeSections(prev => {
       const newState = {
         ...prev,
         [messageId]: !prev[messageId]
       };
-      // Force update message storage to ensure toggle state persists
       localStorage.setItem("CodeSectionStates", JSON.stringify(newState));
       return newState;
     });
   };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
       className={`min-h-screen flex items-center justify-center p-4 ${themes[theme].bg} transition-colors duration-500 font-sans`}
-      style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
       <style>{`
         @keyframes pulse-glow { 0%, 100% { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); } 50% { filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.8)); } }
         .glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .professional-bg { background: linear-gradient(135deg, #111827, #1f2937); }
-        textarea::-webkit-scrollbar { display: none; }
-        textarea { scrollbar-width: none; -ms-overflow-style: none; }
-        .code-section { max-height: 300px; overflow-y: auto; }
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .code-section { max-height: 500px; overflow-y: auto; }
+        .recording-wave { animation: wave 1.5s ease-in-out infinite; }
+        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
       `}</style>
 
       <div className="w-full max-w-screen-xl flex justify-center">
@@ -579,24 +500,24 @@ while (true) {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-              className={`w-64 sm:w-80 h-[85vh] sm:h-[90vh] rounded-2xl mr-4 ${themes[theme].sidebar} backdrop-blur-xl overflow-y-auto p-4 professional-bg`}
+              className={`w-64 sm:w-80 h-[85vh] sm:h-[90vh] rounded-2xl mr-4 ${themes[theme].sidebar} backdrop-blur-xl overflow-y-auto p-4`}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-white">History</h2>
+                <h2 className="text-lg sm:text-xl font-semibold">History</h2>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowSidebar(false)}
                   className={`p-2 rounded-full ${themes[theme].button}`}
                 >
-                  <X className="w-5 h-5 text-white" />
+                  <X className="w-5 h-5" />
                 </motion.button>
               </div>
               <div className="mb-6">
                 {conversationHistory.map((item) => (
                   <div key={item.id} className="flex justify-between items-center mb-2">
                     <span
-                      className={`cursor-pointer ${themes[theme].sidebarHover} rounded px-2 text-white text-sm`}
+                      className={`cursor-pointer ${themes[theme].sidebarHover} rounded px-2 text-sm truncate`}
                       onClick={() => loadConversation(item)}
                     >
                       {item.title} ({new Date(item.timestamp).toLocaleDateString()})
@@ -605,7 +526,7 @@ while (true) {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => deleteConversation(item.id)}
-                      className="p-1 rounded-full bg-red-500/70 text-white"
+                      className="p-1 rounded-full bg-red-500/70"
                     >
                       <Trash className="w-4 h-4" />
                     </motion.button>
@@ -613,13 +534,13 @@ while (true) {
                 ))}
               </div>
               <div>
-                <h3 className="text-base font-semibold mb-2 text-white">Settings</h3>
+                <h3 className="text-base font-semibold mb-2">Settings</h3>
                 <div className="flex flex-col space-y-2">
                   <button
                     onClick={toggleTheme}
                     className={`flex items-center p-2 rounded-md ${themes[theme].button} ${themes[theme].sidebarHover}`}
                   >
-                    <Palette className="w-4 h-4 mr-2 text-white" /> Theme
+                    <Palette className="w-4 h-4 mr-2" /> Theme
                   </button>
                 </div>
               </div>
@@ -630,9 +551,9 @@ while (true) {
         <motion.div
           layout
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className={`w-full max-w-[90vw] sm:max-w-4xl rounded-3xl shadow-2xl overflow-hidden ${themes[theme].card} h-[85vh] sm:h-[90vh] professional-bg`}
+          className={`w-full max-w-[90vw] sm:max-w-4xl rounded-3xl shadow-2xl overflow-hidden ${themes[theme].card} h-[85vh] sm:h-[90vh]`}
         >
-          <header className={`flex items-center justify-between p-4 sm:p-5 ${themes[theme].header} backdrop-blur-xl border-b border-gray-800/30`}>
+          <header className={`flex items-center justify-between p-4 sm:p-5 ${themes[theme].header} backdrop-blur-xl border-b`}>
             <div className="flex items-center space-x-3">
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -640,7 +561,7 @@ while (true) {
                 onClick={() => setShowSidebar(!showSidebar)}
                 className={`p-2 sm:p-3 rounded-full ${themes[theme].button}`}
               >
-                <Menu className="w-5 h-5 text-white" />
+                <Menu className="w-5 h-5" />
               </motion.button>
               <motion.div
                 whileHover={{ rotate: 360 }}
@@ -692,67 +613,70 @@ while (true) {
                                 onClick={() => speakMessage(msg.text)}
                                 className="p-1 text-xs opacity-70 hover:opacity-100"
                               >
-                                <Volume2 className="w-4 h-4 text-white" />
+                                <Volume2 className="w-4 h-4" />
                               </motion.button>
                             </div>
                           )}
                         </div>
                       )}
                       {msg.code && msg.code.length > 0 && (
-                <div className="mt-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => toggleCodeSection(msg.id)}
-                    className={`flex items-center p-2 rounded-md ${themes[theme].button}`}
-                  >
-                    <Code className="w-4 h-4 mr-2 text-white" />
-                    {showCodeSections[msg.id] ? "Hide Code" : "Show Code"}
-                  </motion.button>
-                  
-                  <AnimatePresence>
-                    {showCodeSections[msg.id] && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} code-section relative`}
-                      >
-                        {msg.code.map(({ language, code }, i) => {
-                          // Critical fix: Make sure language is processed correctly
-                          const displayLanguage = language ? language.trim() : "plaintext";
-                          
-                          // Critical fix: Clean the code content to remove any language prefix
-                          // This ensures the language identifier isn't showing up as first line
-                          const cleanedCode = code.replace(new RegExp(`^${displayLanguage}\\s*`), '');
-                          
-                          return (
-                            <div key={i} className="relative mb-2">
-                              <div className="font-bold text-sm text-gray-300">
-                                {displayLanguage.toUpperCase()}
-                              </div>
-                              <SyntaxHighlighter
-                                language={displayLanguage}
-                                style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
-                                customStyle={{ fontSize: "0.875rem", margin: 0, padding: "0.5rem" }}
-                                showLineNumbers
-                              >
-                                {cleanedCode}
-                              </SyntaxHighlighter>
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => copyToClipboard(cleanedCode)}
-                                className="absolute top-2 right-2 p-1 bg-gray-800/70 rounded-md text-gray-300 hover:text-white hover:bg-gray-700/70"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </motion.button>
+                        <div className="mt-2">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => toggleCodeSection(msg.id)}
+                            className={`flex items-center p-2 rounded-md ${themes[theme].button} w-full justify-between`}
+                          >
+                            <div className="flex items-center">
+                              <Code className="w-4 h-4 mr-2" />
+                              <span>{showCodeSections[msg.id] ? "Hide Code" : "Show Code"}</span>
                             </div>
-                          );
-                        })}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                            <span className="text-xs opacity-70">
+                              {msg.code[0].language}
+                            </span>
+                          </motion.button>
+                          
+                          <AnimatePresence>
+                            {showCodeSections[msg.id] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className={`mt-2 p-3 rounded-xl ${themes[theme].codeBg} code-section`}
+                              >
+                                {msg.code.map(({ language, code }, i) => (
+                                  <div key={i} className="relative mb-4 last:mb-0">
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className="font-bold text-sm">
+                                        {language.toUpperCase()}
+                                      </span>
+                                      <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => copyToClipboard(code)}
+                                        className="p-1 rounded-md bg-opacity-70 hover:bg-opacity-100 transition-all"
+                                      >
+                                        <Copy className="w-4 h-4" />
+                                      </motion.button>
+                                    </div>
+                                    <SyntaxHighlighter
+                                      language={language.toLowerCase()}
+                                      style={theme === "dark" || theme === "neon" ? oneDark : oneLight}
+                                      customStyle={{ 
+                                        fontSize: "0.875rem",
+                                        margin: 0,
+                                        padding: "1rem",
+                                        background: 'transparent'
+                                      }}
+                                      showLineNumbers
+                                    >
+                                      {code}
+                                    </SyntaxHighlighter>
+                                  </div>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       )}
                     </div>
@@ -776,94 +700,111 @@ while (true) {
               )}
             </div>
 
-            <div className={`p-4 relative border-t ${themes[theme].header} backdrop-blur-xl border-gray-800/30`}>
-              <div className="relative">
-                <textarea
-                  ref={textareaRef}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything..."
-                  className={`w-full p-4 pr-36 rounded-xl resize-none ${themes[theme].input} transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/70`}
-                  style={{ minHeight: "60px", maxHeight: "150px" }}
-                ></textarea>
-                <div className="absolute right-2 bottom-2 flex space-x-2">
-                  {isRecording ? (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={stopVoiceInput}
-                      className="p-2 rounded-full bg-red-500 text-white"
-                    >
-                      <Square className="w-5 h-5" />
-                    </motion.button>
-                  ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={startVoiceInput}
-                      className={`p-2 rounded-full ${themes[theme].button}`}
-                    >
-                      <Mic className="w-5 h-5 text-white" />
-                    </motion.button>
-                  )}
+            <div className={`p-4 sm:p-6 relative border-t ${themes[theme].header} backdrop-blur-xl transition-all duration-300`}>
+  <div className="relative">
+    <textarea
+      ref={textareaRef}
+      value={message}
+      onChange={(e) => setMessage(e.target.value)}
+      onKeyDown={handleKeyDown}
+      placeholder="Ask me anything..."
+      className={`w-full p-4 pr-36 sm:pr-44 rounded-2xl resize-none ${themes[theme].input} shadow-inner transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/70`}
+      style={{ minHeight: "60px", maxHeight: "150px" }}
+    ></textarea>
 
-                  <div className="relative">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowActions(!showActions)}
-                      className={`p-2 rounded-full ${themes[theme].button}`}
-                    >
-                      <ChevronDown className={`w-5 h-5 text-white transition-all duration-300 ${showActions ? "transform rotate-180" : ""}`} />
-                    </motion.button>
-                    <AnimatePresence>
-                      {showActions && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className={`absolute bottom-full right-0 mb-2 p-2 rounded-lg ${themes[theme].sidebar} shadow-lg z-10 backdrop-blur-xl`}
-                        >
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={saveConversation}
-                            className={`p-2 flex items-center justify-center ${themes[theme].button} mb-2 w-full rounded-md`}
-                          >
-                            <Save className="w-4 h-4 mr-2 text-white" />
-                            <span className="text-white text-sm">Save Chat</span>
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              localStorage.removeItem(localStorageKey);
-                              setChatMessages([]);
-                              setShowCodeSections({});
-                              showToast("🧹 Cleared chat!");
-                            }}
-                            className={`p-2 flex items-center justify-center bg-red-500/70 w-full rounded-md`}
-                          >
-                            <Trash className="w-4 h-4 mr-2 text-white" />
-                            <span className="text-white text-sm">Clear Chat</span>
-                          </motion.button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+    {/* Action Buttons */}
+    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-wrap sm:flex-nowrap space-x-2 space-y-2 sm:space-y-0">
 
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => (loading ? stopGeneration() : generate())}
-                    className="p-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                  >
-                    {loading ? <Square className="w-5 h-5" /> : <Send className="w-5 h-5" />}
-                  </motion.button>
-                </div>
-              </div>
-            </div>
+      {/* Mic or Recording */}
+      {isRecording ? (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={stopVoiceInput}
+          className="p-2 rounded-full bg-red-500 text-white shadow-md flex items-center justify-center"
+        >
+          <div className="flex space-x-1 items-center h-5">
+            {[0, 100, 200].map((delay, i) => (
+              <div
+                key={i}
+                className="recording-wave bg-white w-1 h-3 sm:h-5 rounded-full animate-pulse"
+                style={{ animationDelay: `${delay}ms` }}
+              />
+            ))}
+          </div>
+        </motion.button>
+      ) : (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={startVoiceInput}
+          className={`p-2 rounded-full ${themes[theme].button} shadow-md flex items-center justify-center`}
+        >
+          <Mic className="w-5 h-5" />
+        </motion.button>
+      )}
+
+      {/* Dropdown Button */}
+      <div className="relative">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowActions(!showActions)}
+          className={`p-2 rounded-full ${themes[theme].button} shadow-md`}
+        >
+          <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${showActions ? "rotate-180" : ""}`} />
+        </motion.button>
+
+        {/* Dropdown Menu */}
+        <AnimatePresence>
+          {showActions && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className={`absolute bottom-full right-0 mb-2 p-2 rounded-xl ${themes[theme].sidebar} shadow-lg z-10 backdrop-blur-xl w-44`}
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={saveConversation}
+                className={`p-2 flex items-center justify-start ${themes[theme].button} rounded-md w-full mb-2`}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                <span className="text-sm">Save Chat</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  localStorage.removeItem(localStorageKey);
+                  setChatMessages([]);
+                  setShowCodeSections({});
+                  showToast("🧹 Cleared chat!");
+                }}
+                className="p-2 flex items-center justify-start bg-red-500/80 text-white rounded-md w-full"
+              >
+                <Trash className="w-4 h-4 mr-2" />
+                <span className="text-sm">Clear Chat</span>
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Send / Stop Generation */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => (loading ? stopGeneration() : generate())}
+        className="p-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+      >
+        {loading ? <Square className="w-5 h-5" /> : <Send className="w-5 h-5" />}
+      </motion.button>
+    </div>
+  </div>
+</div>
+
           </div>
         </motion.div>
       </div>
@@ -872,3 +813,4 @@ while (true) {
 };
 
 export default LearnWithoutLimitsAI;
+                      
